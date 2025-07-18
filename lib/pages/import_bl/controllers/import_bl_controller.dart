@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:refreshed/refreshed.dart';
 
 class ImportBLController extends GetxController {
-
   RxBool shouldShowBottomSheet = false.obs;
   RxString bottomSheetTag1 = "".obs;
   RxString bottomSheetTag2 = "".obs;
@@ -13,6 +12,8 @@ class ImportBLController extends GetxController {
   RxInt selectedStatusIndex = 0.obs;
   RxInt selectedRemarksIndex = 0.obs;
   RxInt selectedPerishableIndex = 0.obs;
+  RxInt selectedBLIndex = 0.obs;
+  final FocusNode _focusNode = FocusNode();
 
   final List<String> vesselTableHeadings = [
     "Year",
@@ -69,28 +70,28 @@ class ImportBLController extends GetxController {
   var portOfShipmentTECs = <TextEditingController>[].obs;
   var flagTECs = <TextEditingController>[].obs;
 
-  var lineNoTECs = <TextEditingController>[].obs;
-  var contPrefixTECs = <TextEditingController>[].obs;
-  var contNoTECs = <TextEditingController>[].obs;
-  var sizeTECs = <TextEditingController>[].obs;
-  var contTypeTECs = <TextEditingController>[].obs;
-  var isoCodeTECs = <TextEditingController>[].obs;
-  var qtyTECs = <TextEditingController>[].obs;
-  var uomTECs = <TextEditingController>[].obs;
-  var weightKgmTECs = <TextEditingController>[].obs;
-  var contVolumeTECs = <TextEditingController>[].obs;
-  var vgmQtyTECs = <TextEditingController>[].obs;
-  var cbmTECs = <TextEditingController>[].obs;
-  var sealNoTECs = <TextEditingController>[].obs;
-  var imcoTECs = <TextEditingController>[].obs;
-  var unTECs = <TextEditingController>[].obs;
-  var statusTECs = <TextEditingController>[].obs;
-  var loadPortDtTECs = <TextEditingController>[].obs;
-  var remarksTECs = <TextEditingController>[].obs;
-  var partTECs = <TextEditingController>[].obs;
-  var offDockTECs = <TextEditingController>[].obs;
-  var commoCodeTECs = <TextEditingController>[].obs;
-  var perishableTECs = <TextEditingController>[].obs;
+  var lineNoTECs = <List<TextEditingController>>[].obs;
+  var contPrefixTECs = <List<TextEditingController>>[].obs;
+  var contNoTECs = <List<TextEditingController>>[].obs;
+  var sizeTECs = <List<TextEditingController>>[].obs;
+  var contTypeTECs = <List<TextEditingController>>[].obs;
+  var isoCodeTECs = <List<TextEditingController>>[].obs;
+  var qtyTECs = <List<TextEditingController>>[].obs;
+  var uomTECs = <List<TextEditingController>>[].obs;
+  var weightKgmTECs = <List<TextEditingController>>[].obs;
+  var contVolumeTECs = <List<TextEditingController>>[].obs;
+  var vgmQtyTECs = <List<TextEditingController>>[].obs;
+  var cbmTECs = <List<TextEditingController>>[].obs;
+  var sealNoTECs = <List<TextEditingController>>[].obs;
+  var imcoTECs = <List<TextEditingController>>[].obs;
+  var unTECs = <List<TextEditingController>>[].obs;
+  var statusTECs = <List<TextEditingController>>[].obs;
+  var loadPortDtTECs = <List<TextEditingController>>[].obs;
+  var remarksTECs = <List<TextEditingController>>[].obs;
+  var partTECs = <List<TextEditingController>>[].obs;
+  var offDockTECs = <List<TextEditingController>>[].obs;
+  var commoCodeTECs = <List<TextEditingController>>[].obs;
+  var perishableTECs = <List<TextEditingController>>[].obs;
 
   var portOfLandingTECs = <TextEditingController>[].obs;
   var slNoTECs = <TextEditingController>[].obs;
@@ -119,13 +120,13 @@ class ImportBLController extends GetxController {
   var commodityTECs = <TextEditingController>[].obs;
   var dgStatusTECs = <TextEditingController>[].obs;
 
-
   var bankAddressForNoticeToConsigneeTECs = <TextEditingController>[].obs;
   var sl_NoTECs = <TextEditingController>[].obs;
 
   // Helper to easily get the row count
   int get rowCount => yearTECs.length;
-  int get rowCountForContainer => loadPortDtTECs.length;
+
+  int get rowCountForContainer => loadPortDtTECs.isEmpty ? 0 : loadPortDtTECs[selectedBLIndex.value].length;
 
   // This helper maps a heading string to the correct list of controllers.
   // This keeps the view file clean.
@@ -162,52 +163,53 @@ class ImportBLController extends GetxController {
 
   List<TextEditingController> _getContainerControllerListByHeading(
     String heading,
+      int blIndex
   ) {
     switch (heading) {
       case "Line No.":
-        return lineNoTECs;
+        return lineNoTECs[blIndex];
       case "Cont. Prefix":
-        return contPrefixTECs;
+        return contPrefixTECs[blIndex];
       case "Cont. No.":
-        return contNoTECs;
+        return contNoTECs[blIndex];
       case "Size":
-        return sizeTECs;
+        return sizeTECs[blIndex];
       case "Cont. Type":
-        return contTypeTECs;
+        return contTypeTECs[blIndex];
       case "ISO Code":
-        return isoCodeTECs;
+        return isoCodeTECs[blIndex];
       case "Qty":
-        return qtyTECs;
+        return qtyTECs[blIndex];
       case "Uom":
-        return uomTECs;
+        return uomTECs[blIndex];
       case "Weight (KGM)":
-        return weightKgmTECs;
+        return weightKgmTECs[blIndex];
       case "Cont. Volume":
-        return contVolumeTECs;
+        return contVolumeTECs[blIndex];
       case "VGM Qty":
-        return vgmQtyTECs;
+        return vgmQtyTECs[blIndex];
       case "CBM":
-        return cbmTECs;
+        return cbmTECs[blIndex];
       case "Seal No.":
-        return sealNoTECs;
+        return sealNoTECs[blIndex];
       case "IMCO":
-        return imcoTECs;
+        return imcoTECs[blIndex];
       case "Un":
-        return unTECs;
+        return unTECs[blIndex];
       case "Status":
-        return statusTECs;
+        return statusTECs[blIndex];
       case "Load Port Dt":
-        return loadPortDtTECs;
+        return loadPortDtTECs[blIndex];
       case "Remarks":
-        return remarksTECs;
+        return remarksTECs[blIndex];
       case "Part":
-        return partTECs;
+        return partTECs[blIndex];
       case "Off Dock":
-        return offDockTECs;
+        return offDockTECs[blIndex];
       case "Commo. Code":
-        return commoCodeTECs;
+        return commoCodeTECs[blIndex];
       case "Perishable":
-        return perishableTECs;
+        return perishableTECs[blIndex];
       default:
         return []; // Should never happen
     }
@@ -219,16 +221,20 @@ class ImportBLController extends GetxController {
   }
 
   // Gets the specific controller for any cell
-  TextEditingController getControllerForCellForContainerTable(String heading, int rowIndex) {
-    return _getContainerControllerListByHeading(heading)[rowIndex];
-  }
+  // TextEditingController getControllerForCellForContainerTable(
+  //   String heading,
+  //   int rowIndex,
+  // ) {
+  //   return _getContainerControllerListByHeading(heading)[rowIndex];
+  // }
 
   // Gets the specific controller for any cell
   TextEditingController getContainerControllerForCell(
     String heading,
+    int blIndex,
     int rowIndex,
   ) {
-    return _getContainerControllerListByHeading(heading)[rowIndex];
+    return _getContainerControllerListByHeading(heading, blIndex)[rowIndex];
   }
 
   @override
@@ -236,7 +242,7 @@ class ImportBLController extends GetxController {
     super.onInit();
     addRow(); // Start with one row
     addRowToContainerTable();
-    prepareBlTableTECs();
+    addBlTableTECs();
   }
 
   void addRow() {
@@ -260,66 +266,93 @@ class ImportBLController extends GetxController {
   void addRowToContainerTable() {
     if (rowCountForContainer >= 5) return;
 
-    lineNoTECs.add(TextEditingController());
-    contPrefixTECs.add(TextEditingController());
-    contNoTECs.add(TextEditingController());
-    sizeTECs.add(TextEditingController());
-    contTypeTECs.add(TextEditingController());
-    isoCodeTECs.add(TextEditingController());
-    qtyTECs.add(TextEditingController());
-    uomTECs.add(TextEditingController());
-    weightKgmTECs.add(TextEditingController());
-    contVolumeTECs.add(TextEditingController());
-    vgmQtyTECs.add(TextEditingController());
-    cbmTECs.add(TextEditingController());
-    sealNoTECs.add(TextEditingController());
-    imcoTECs.add(TextEditingController());
-    unTECs.add(TextEditingController());
-    statusTECs.add(TextEditingController());
-    loadPortDtTECs.add(TextEditingController());
-    remarksTECs.add(TextEditingController());
-    partTECs.add(TextEditingController());
-    offDockTECs.add(TextEditingController());
-    commoCodeTECs.add(TextEditingController());
-    perishableTECs.add(TextEditingController());
+    lineNoTECs.add([TextEditingController()].obs);
+    contPrefixTECs.add([TextEditingController()].obs);
+    contNoTECs.add([TextEditingController()].obs);
+    sizeTECs.add([TextEditingController()].obs);
+    contTypeTECs.add([TextEditingController()].obs);
+    isoCodeTECs.add([TextEditingController()].obs);
+    qtyTECs.add([TextEditingController()].obs);
+    uomTECs.add([TextEditingController()].obs);
+    weightKgmTECs.add([TextEditingController()].obs);
+    contVolumeTECs.add([TextEditingController()].obs);
+    vgmQtyTECs.add([TextEditingController()].obs);
+    cbmTECs.add([TextEditingController()].obs);
+    sealNoTECs.add([TextEditingController()].obs);
+    imcoTECs.add([TextEditingController()].obs);
+    unTECs.add([TextEditingController()].obs);
+    statusTECs.add([TextEditingController()].obs);
+    loadPortDtTECs.add([TextEditingController()].obs);
+    remarksTECs.add([TextEditingController()].obs);
+    partTECs.add([TextEditingController()].obs);
+    offDockTECs.add([TextEditingController()].obs);
+    commoCodeTECs.add([TextEditingController()].obs);
+    perishableTECs.add([TextEditingController()].obs);
   }
 
-  void prepareBlTableTECs() {
-    // if (rowCountForContainer >= 5) return;
+  void addRowToSpecificIndexInContainerTable(int index) {
+    if (rowCountForContainer >= 5) return;
 
-     portOfLandingTECs.add(TextEditingController());
-     slNoTECs.add(TextEditingController());
-     blLineNoTECs.add(TextEditingController());
-     blNoTECs.add(TextEditingController());
-     fclTECs.add(TextEditingController());
-     fclQtyTECs.add(TextEditingController());
-     lclTECs.add(TextEditingController());
-     lclConsolidatedTECs.add(TextEditingController());
-     consigneeCodeTECs.add(TextEditingController());
-     consigneeTECs.add(TextEditingController());
-     consigneeAddressTECs.add(TextEditingController());
-     exporterTECs.add(TextEditingController());
-     blRemarksTECs.add(TextEditingController());
-     notifyCodeTECs.add(TextEditingController());
-     notifyPartyTECs.add(TextEditingController());
-     notifyAddressTECs.add(TextEditingController());
-     exporterAddressTECs.add(TextEditingController());
-     placeOfUnloadTECs.add(TextEditingController());
-     blNatureTECs.add(TextEditingController());
-     blTypeCodeTECs.add(TextEditingController());
-     blLoadPortDtTECs.add(TextEditingController());
-     marksTECs.add(TextEditingController());
-     quantityTECs.add(TextEditingController());
-     quantity2TECs.add(TextEditingController());
-     commodityTECs.add(TextEditingController());
-     dgStatusTECs.add(TextEditingController());
+    lineNoTECs[index].add(TextEditingController());
+    contPrefixTECs[index].add(TextEditingController());
+    contNoTECs[index].add(TextEditingController());
+    sizeTECs[index].add(TextEditingController());
+    contTypeTECs[index].add(TextEditingController());
+    isoCodeTECs[index].add(TextEditingController());
+    qtyTECs[index].add(TextEditingController());
+    uomTECs[index].add(TextEditingController());
+    weightKgmTECs[index].add(TextEditingController());
+    contVolumeTECs[index].add(TextEditingController());
+    vgmQtyTECs[index].add(TextEditingController());
+    cbmTECs[index].add(TextEditingController());
+    sealNoTECs[index].add(TextEditingController());
+    imcoTECs[index].add(TextEditingController());
+    unTECs[index].add(TextEditingController());
+    statusTECs[index].add(TextEditingController());
+    loadPortDtTECs[index].add(TextEditingController());
+    remarksTECs[index].add(TextEditingController());
+    partTECs[index].add(TextEditingController());
+    offDockTECs[index].add(TextEditingController());
+    commoCodeTECs[index].add(TextEditingController());
+    perishableTECs[index].add(TextEditingController());
+  }
 
+  void addBlTableTECs() {
 
-     dgStatusTECs[0].text = "No";
-     portOfLandingTECs[0].text = "CTG";
-     blTypeCodeTECs[0].text = "MSB";
+    portOfLandingTECs.add(TextEditingController());
+    slNoTECs.add(TextEditingController());
+    blLineNoTECs.add(TextEditingController());
+    blNoTECs.add(TextEditingController());
+    fclTECs.add(TextEditingController());
+    fclQtyTECs.add(TextEditingController());
+    lclTECs.add(TextEditingController());
+    lclConsolidatedTECs.add(TextEditingController());
+    consigneeCodeTECs.add(TextEditingController());
+    consigneeTECs.add(TextEditingController());
+    consigneeAddressTECs.add(TextEditingController());
+    exporterTECs.add(TextEditingController());
+    blRemarksTECs.add(TextEditingController());
+    notifyCodeTECs.add(TextEditingController());
+    notifyPartyTECs.add(TextEditingController());
+    notifyAddressTECs.add(TextEditingController());
+    exporterAddressTECs.add(TextEditingController());
+    placeOfUnloadTECs.add(TextEditingController());
+    blNatureTECs.add(TextEditingController());
+    blTypeCodeTECs.add(TextEditingController());
+    blLoadPortDtTECs.add(TextEditingController());
+    marksTECs.add(TextEditingController());
+    quantityTECs.add(TextEditingController());
+    quantity2TECs.add(TextEditingController());
+    commodityTECs.add(TextEditingController());
+    dgStatusTECs.add(TextEditingController());
+
+    // dgStatusTECs[0].text = "No";
+    // portOfLandingTECs[0].text = "CTG";
+    // blTypeCodeTECs[0].text = "MSB";
 
   }
+
+  get focusNode => _focusNode;
 
   @override
   void dispose() {
@@ -360,12 +393,15 @@ class ImportBLController extends GetxController {
       commoCodeTECs,
       perishableTECs,
     ];
-    for (var controllerList in allLists) {
-      for (var controller in controllerList) {
-        controller.dispose();
+    for (List controllerList in allLists) {
+      for (List controller in controllerList) {
+        for (var val in controller) {
+          val.dispose();
+        }
       }
     }
     horizontal.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 }
