@@ -16,28 +16,28 @@ class ImportBLXMLGeneration {
   final List<RxString> portOfShipments;
   final List<RxString> flags;
 
-  final List<RxString> lineNos;
-  final List<RxString> contPrefixes;
-  final List<RxString> contNos;
-  final List<RxString> sizes;
-  final List<RxString> contTypes;
-  final List<RxString> isoCodes;
-  final List<RxString> qtys;
-  final List<RxString> uoms;
-  final List<RxString> weightKgms;
-  final List<RxString> contVolumes;
-  final List<RxString> vgmQtys;
-  final List<RxString> cbms;
-  final List<RxString> sealNos;
-  final List<RxString> imcos;
-  final List<RxString> uns;
-  final List<RxString> statuses;
-  final List<RxString> loadPortDts;
-  final List<RxString> remarks;
-  final List<RxString> parts;
-  final List<RxString> offDocks;
-  final List<RxString> commoCodes;
-  final List<RxString> perishables;
+  final List<List<RxString>> lineNos;
+  final List<List<RxString>> contPrefixes;
+  final List<List<RxString>> contNos;
+  final List<List<RxString>> sizes;
+  final List<List<RxString>> contTypes;
+  final List<List<RxString>> isoCodes;
+  final List<List<RxString>> qtys;
+  final List<List<RxString>> uoms;
+  final List<List<RxString>> weightKgms;
+  final List<List<RxString>> contVolumes;
+  final List<List<RxString>> vgmQtys;
+  final List<List<RxString>> cbms;
+  final List<List<RxString>> sealNos;
+  final List<List<RxString>> imcos;
+  final List<List<RxString>> uns;
+  final List<List<RxString>> statuses;
+  final List<List<RxString>> loadPortDts;
+  final List<List<RxString>> remarks;
+  final List<List<RxString>> parts;
+  final List<List<RxString>> offDocks;
+  final List<List<RxString>> commoCodes;
+  final List<List<RxString>> perishables;
 
   final List<RxString> portOfLanding;
   final List<RxString> slNo;
@@ -66,43 +66,74 @@ class ImportBLXMLGeneration {
   final List<RxString> commodity;
   final List<RxString> dgStatus;
 
-
-  ImportBLXMLGeneration({required this.years, required this.feederVesselNames,
+  ImportBLXMLGeneration({
+    required this.years,
+    required this.feederVesselNames,
     required this.fevRotationNos,
-    required this.fvVoys, required this.netMTs, required this.departureDates,
+    required this.fvVoys,
+    required this.netMTs,
+    required this.departureDates,
     required this.depCodes,
-    required this.flagNames, required this.arrivalDates,
+    required this.flagNames,
+    required this.arrivalDates,
     required this.berthingDates,
-    required this.portOfShipments, required this.flags, required this.lineNos,
+    required this.portOfShipments,
+    required this.flags,
+    required this.lineNos,
     required this.contPrefixes,
-    required this.contNos, required this.sizes, required this.contTypes,
-    required this.isoCodes, required this.qtys,
-    required this.uoms, required this.weightKgms, required this.contVolumes,
-    required this.vgmQtys, required this.cbms,
-    required this.sealNos, required this.imcos, required this.uns,
-    required this.statuses, required this.loadPortDts,
-    required this.remarks, required this.parts, required this.offDocks,
+    required this.contNos,
+    required this.sizes,
+    required this.contTypes,
+    required this.isoCodes,
+    required this.qtys,
+    required this.uoms,
+    required this.weightKgms,
+    required this.contVolumes,
+    required this.vgmQtys,
+    required this.cbms,
+    required this.sealNos,
+    required this.imcos,
+    required this.uns,
+    required this.statuses,
+    required this.loadPortDts,
+    required this.remarks,
+    required this.parts,
+    required this.offDocks,
     required this.commoCodes,
-    required this.perishables, required this.portOfLanding,
+    required this.perishables,
+    required this.portOfLanding,
     required this.slNo,
-    required this.blLineNo, required this.blNo,
-    required this.fcl, required this.fclQty,
-    required this.lcl, required this.lclConsolidated,
+    required this.blLineNo,
+    required this.blNo,
+    required this.fcl,
+    required this.fclQty,
+    required this.lcl,
+    required this.lclConsolidated,
     required this.consigneeCode,
-    required this.consignee, required this.consigneeAddress,
+    required this.consignee,
+    required this.consigneeAddress,
     required this.exporter,
-    required this.blRemarks, required this.notifyCode,
+    required this.blRemarks,
+    required this.notifyCode,
     required this.notifyParty,
-    required this.notifyAddress, required this.exporterAddress,
+    required this.notifyAddress,
+    required this.exporterAddress,
     required this.placeOfUnload,
-    required this.blNature, required this.blTypeCode,
+    required this.blNature,
+    required this.blTypeCode,
     required this.blLoadPortDt,
-    required this.marks, required this.quantity,
-    required this.quantity2, required this.commodity,
-    required this.dgStatus});
+    required this.marks,
+    required this.quantity,
+    required this.quantity2,
+    required this.commodity,
+    required this.dgStatus,
+  });
+
+  double totalGrossMass = 0.0;
 
   generateXML() {
-    final xml = '''<?xml version="1.0" encoding="WINDOWS-1252"?>
+    final xml =
+        '''<?xml version="1.0" encoding="WINDOWS-1252"?>
       <!-- Generated by Oracle Reports version 10.1.2.0.2 -->
       <Awmds>
         <General_segment>
@@ -114,9 +145,9 @@ class ImportBLXMLGeneration {
           </General_segment_id>
           <Totals_segment>
             <Total_number_of_bols>${blLineNo.length.toString()}</Total_number_of_bols>
-            <Total_number_of_packages>${qtys[0].value}</Total_number_of_packages>
+            <Total_number_of_packages>${qtys[0][0].value}</Total_number_of_packages>
             <Total_number_of_containers>${contNos.length.toString()}</Total_number_of_containers>
-            <Total_gross_mass>${weightKgms[0].value}</Total_gross_mass>
+            <Total_gross_mass>${weightKgms[0][0].value}</Total_gross_mass>
           </Totals_segment>
           <Transport_information>
             <Carrier>
@@ -172,27 +203,27 @@ class ImportBLXMLGeneration {
             </Consignee>
           </Traders_segment>
           <ctn_segment>
-            <Ctn_reference>${contPrefixes[0].value}${contNos[0].value}</Ctn_reference>
-            <Number_of_packages>${qtys[0].value}</Number_of_packages>
-            <Type_of_container>${contTypes[0].value}</Type_of_container>
-            <Status>${statuses[0].value}</Status>
-            <Seal_number>${sealNos[0].value}</Seal_number>
-            <IMCO>${imcos[0].value}</IMCO>
-            <UN>${uns[0].value}</UN>
+            <Ctn_reference>${contPrefixes[0][0].value}${contNos[0][0].value}</Ctn_reference>
+            <Number_of_packages>${qtys[0][0].value}</Number_of_packages>
+            <Type_of_container>${contTypes[0][0].value}</Type_of_container>
+            <Status>${statuses[0][0].value}</Status>
+            <Seal_number>${sealNos[0][0].value}</Seal_number>
+            <IMCO>${imcos[0][0].value}</IMCO>
+            <UN>${uns[0][0].value}</UN>
             <Ctn_location>${portOfLanding[0].value}</Ctn_location>
-            <Commodity_code>${commoCodes[0].value}</Commodity_code>
-            <Gross_weight>${weightKgms[0].value}</Gross_weight>
-            <Verified_Gross_Mass>${vgmQtys[0].value}</Verified_Gross_Mass>
+            <Commodity_code>${commoCodes[0][0].value}</Commodity_code>
+            <Gross_weight>${weightKgms[0][0].value}</Gross_weight>
+            <Verified_Gross_Mass>${vgmQtys[0][0].value}</Verified_Gross_Mass>
           </ctn_segment>
           <Goods_segment>
             <Number_of_packages>${quantity[0].value}</Number_of_packages>
             <Package_type_code>${quantity2[0].value}</Package_type_code>
-            <Gross_mass>${weightKgms[0].value}</Gross_mass>
+            <Gross_mass>${weightKgms[0][0].value}</Gross_mass>
             <Shipping_marks>${marks[0].value}</Shipping_marks>
             <Goods_description>${commodity[0].value}</Goods_description>
-            <Volume_in_cubic_meters>${contVolumes[0].value}</Volume_in_cubic_meters>
+            <Volume_in_cubic_meters>${contVolumes[0][0].value}</Volume_in_cubic_meters>
             <Num_of_ctn_for_required required this_bol>1</Num_of_ctn_for_required required this_bol>
-            <Remarks>${remarks[0].value}</Remarks>
+            <Remarks>${remarks[0][0].value}</Remarks>
           </Goods_segment>
           <Value_segment>
             <Freight_segment>
@@ -207,24 +238,77 @@ class ImportBLXMLGeneration {
     return xml.toString();
   }
 
-  dynamic getGrossMass() {
+  dynamic getGrossMass(int index) {
     var totalMass = 0;
-    for(var v in weightKgms) {
+    for (var v in weightKgms[index]) {
       totalMass += int.parse(v.value);
     }
 
     return totalMass.toString();
-
   }
 
+  dynamic getAllContainerInfoForSpecificBL(int index) {
+    String ctns = "";
+
+    for (int i = 0; i < contNos[index].length; i++) {
+      if (i != 0) {
+        ctns += "\n";
+      }
+
+      ctns +=
+          """<ctn_segment>
+      <Ctn_reference>${contPrefixes[index][i].value}${contNos[index][i].value}</Ctn_reference>
+      <Number_of_packages>${quantity[index].value}</Number_of_packages>
+      <Type_of_container>${contTypes[index][i].value}</Type_of_container>
+      <Status>${statuses[index][i].value}</Status>
+      <Seal_number>${sealNos[index][i].value}</Seal_number>
+      <IMCO>${imcos[index][i].value}</IMCO>
+      <UN>${uns[index][i].value}</UN>
+      <Ctn_location>${portOfLanding[index].value}</Ctn_location>
+      <Commodity_code>${commoCodes[index][i].value}</Commodity_code>
+      <Gross_weight>${weightKgms[index][i].value}</Gross_weight>
+      <Verified_Gross_Mass>${vgmQtys[index][i].value}</Verified_Gross_Mass>
+    </ctn_segment>""";
+    }
+    return ctns;
+  }
+
+  dynamic getCombinedMass(int index) {
+    double grossMass = 0;
+
+    for (int i = 0; i < weightKgms[index].length; i++) {
+      if (weightKgms[index][i].value.isNotEmpty &&
+          double.tryParse(weightKgms[index][i].value) != null) {
+        grossMass += double.parse(weightKgms[index][i].value);
+      }
+    }
+
+    totalGrossMass += grossMass;
+
+    return grossMass.toString();
+  }
+
+  dynamic getCombinedContainerVolume(int index) {
+    double grossVolume = 0.0;
+
+    for (int i = 0; i < contVolumes[index].length; i++) {
+      if (contVolumes[index][i].value.isNotEmpty &&
+          double.tryParse(contVolumes[index][i].value) != null) {
+        grossVolume += double.parse(contVolumes[index][i].value);
+      }
+    }
+
+    return grossVolume.toString();
+  }
 
   dynamic prepareMultiBLSection() {
     String BLs = "";
-    for(int i = 0; i < blLineNo.length; i++) {
-      if(i != 0) {
+    for (int i = 0; i < blLineNo.length; i++) {
+      if (i != 0) {
         BLs += "\n";
       }
-      BLs += """<Bol_segment>
+      BLs +=
+          """<Bol_segment>
     <Bol_id>
       <Bol_reference>${blNo[i].value}</Bol_reference>
       <Line_number>${blLineNo[i].value}</Line_number>
@@ -264,25 +348,14 @@ class ImportBLXMLGeneration {
       </Consignee>
     </Traders_segment>
     <ctn_segment>
-      <Ctn_reference>${contPrefixes[i].value}${contNos[i].value}</Ctn_reference>
-      <Number_of_packages>${quantity[i].value}</Number_of_packages>
-      <Type_of_container>${contTypes[i].value}</Type_of_container>
-      <Status>${statuses[i].value}</Status>
-      <Seal_number>${sealNos[i].value}</Seal_number>
-      <IMCO>${imcos[i].value}</IMCO>
-      <UN>${uns[i].value}</UN>
-      <Ctn_location>${portOfLanding[i].value}</Ctn_location>
-      <Commodity_code>${commoCodes[i].value}</Commodity_code>
-      <Gross_weight>${weightKgms[i].value}</Gross_weight>
-      <Verified_Gross_Mass>${vgmQtys[i].value}</Verified_Gross_Mass>
-    </ctn_segment>
+    ${getAllContainerInfoForSpecificBL(i)}
     <Goods_segment>
       <Number_of_packages>${quantity[i].value}</Number_of_packages>
       <Package_type_code>${quantity2[i].value}</Package_type_code>
-      <Gross_mass>${weightKgms[i].value}</Gross_mass>
+      <Gross_mass>${getCombinedMass(i)}</Gross_mass>
       <Shipping_marks>${marks[i].value}</Shipping_marks>
       <Goods_description>${commodity[i].value}</Goods_description>
-      <Volume_in_cubic_meters>${contVolumes[i].value}</Volume_in_cubic_meters>
+      <Volume_in_cubic_meters>${getCombinedContainerVolume(i)}</Volume_in_cubic_meters>
       <Num_of_ctn_for_this_bol>${contNos.length.toString()}</Num_of_ctn_for_this_bol>
       <Remarks></Remarks>
     </Goods_segment>
@@ -296,13 +369,11 @@ class ImportBLXMLGeneration {
     }
 
     return BLs;
-
   }
 
-
   dynamic generateMultiBL() {
-
-    var structure = """<?xml version="1.0" encoding="WINDOWS-1252"?>
+    var structure =
+        """<?xml version="1.0" encoding="WINDOWS-1252"?>
 <!-- Generated by Oracle Reports version 10.1.2.0.2 -->
 <Awmds>
   <General_segment>
@@ -314,9 +385,9 @@ class ImportBLXMLGeneration {
     </General_segment_id>
     <Totals_segment>
       <Total_number_of_bols>${blLineNo.length.toString()}</Total_number_of_bols>
-      <Total_number_of_packages>${qtys[0].value}</Total_number_of_packages>
+      <Total_number_of_packages>${qtys[0][0].value}</Total_number_of_packages>
       <Total_number_of_containers>${contNos.length.toString()}</Total_number_of_containers>
-      <Total_gross_mass>${getGrossMass()}</Total_gross_mass>
+      <Total_gross_mass>${totalGrossMass.toString()}</Total_gross_mass>
     </Totals_segment>
     <Transport_information>
       <Carrier>
@@ -333,481 +404,7 @@ class ImportBLXMLGeneration {
       <Place_of_destination_code>BDCGP</Place_of_destination_code>
     </Load_unload_place>
   </General_segment>
-  <Bol_segment>
-    <Bol_id>
-      <Bol_reference>${blNo[0].value}</Bol_reference>
-      <Line_number>${blLineNo[0].value}</Line_number>
-      <Bol_nature>${blNature[0].value}</Bol_nature>
-      <Bol_type_code>${blTypeCode[0].value}</Bol_type_code>
-      <DG_status>${dgStatus[0].value}</DG_status>
-    </Bol_id>
-    <Consolidated_Cargo>${lclConsolidated[0].value}</Consolidated_Cargo>
-    <Load_unload_place>
-      <Port_of_origin_code>${blLoadPortDt[0].value}</Port_of_origin_code>
-      <Place_of_unloading_code>${placeOfUnload[0].value}</Place_of_unloading_code>
-    </Load_unload_place>
-    <Traders_segment>
-      <Carrier>
-        <Carrier_code>301093439</Carrier_code>
-        <Carrier_name>MMG SHIPPING LINES LTD.</Carrier_name>
-        <Carrier_address>13th Floor, Portland M A M Tower, 226 Strand Road, Bangla Bazar, Chattogram, Bangladesh.</Carrier_address>
-      </Carrier>
-      <Shipping_Agent>
-        Shipping_Agent>
-              <Shipping_Agent_code>OLL</Shipping_Agent_code>
-              <Shipping_Agent_name>ONE LINE LTD.</Shipping_Agent_name>
-            </Shipping_Agent>
-      <Exporter>
-              <Exporter_name>${exporter[0].value}</Exporter_name>
-              <Exporter_address>${exporterAddress[0].value}</Exporter_address>
-            </Exporter>
-      <Notify>
-        <Notify_code>${notifyCode[0].value}</Notify_code>
-        <Notify_name>${notifyParty[0].value}</Notify_name>
-        <Notify_address>${notifyAddress[0].value}</Notify_address>
-      </Notify>
-      <Consignee>
-        <Consignee_code>${consigneeCode[0].value}</Consignee_code>
-        <Consignee_name>${consignee[0].value}</Consignee_name>
-        <Consignee_address>${consigneeAddress[0].value}</Consignee_address>
-      </Consignee>
-    </Traders_segment>
-    <ctn_segment>
-      <Ctn_reference>${contPrefixes[0].value}${contNos[0].value}</Ctn_reference>
-      <Number_of_packages>${quantity[0].value}</Number_of_packages>
-      <Type_of_container>${contTypes[0].value}</Type_of_container>
-      <Status>${statuses[0].value}</Status>
-      <Seal_number>${sealNos[0].value}</Seal_number>
-      <IMCO>${imcos[0].value}</IMCO>
-      <UN>${uns[0].value}</UN>
-      <Ctn_location>${portOfLanding[0].value}</Ctn_location>
-      <Commodity_code>${commoCodes[0].value}</Commodity_code>
-      <Gross_weight>${weightKgms[0].value}</Gross_weight>
-      <Verified_Gross_Mass>${vgmQtys[0].value}</Verified_Gross_Mass>
-    </ctn_segment>
-    <Goods_segment>
-      <Number_of_packages>${quantity[0].value}</Number_of_packages>
-      <Package_type_code>${quantity2[0].value}</Package_type_code>
-      <Gross_mass>${weightKgms[0].value}</Gross_mass>
-      <Shipping_marks>${marks[0].value}</Shipping_marks>
-      <Goods_description>${commodity[0].value}</Goods_description>
-      <Volume_in_cubic_meters>${contVolumes[0].value}</Volume_in_cubic_meters>
-      <Num_of_ctn_for_this_bol>${contNos.length.toString()}</Num_of_ctn_for_this_bol>
-      <Remarks></Remarks>
-    </Goods_segment>
-    <Value_segment>
-      <Freight_segment>
-        <Freight_value>0</Freight_value>
-        <Freight_currency>xxx</Freight_currency>
-      </Freight_segment>
-    </Value_segment>
-  </Bol_segment>
-  
-  ----------------------------------------------------------------------------------------------------------------------------------------------------------------
-  
-  <Bol_segment>
-    <Bol_id>
-      <Bol_reference>ACENSACGP005625</Bol_reference>
-      <Line_number>2</Line_number>
-      <Bol_nature>23</Bol_nature>
-      <Bol_type_code>HSB</Bol_type_code>
-      <DG_status></DG_status>
-    </Bol_id>
-    <Consolidated_Cargo>0</Consolidated_Cargo>
-    <Load_unload_place>
-      <Port_of_origin_code>INNSA</Port_of_origin_code>
-      <Place_of_unloading_code>BDCGP</Place_of_unloading_code>
-    </Load_unload_place>
-    <Traders_segment>
-      <Carrier>
-        <Carrier_code>301093439</Carrier_code>
-        <Carrier_name>MMG SHIPPING LINES LTD.</Carrier_name>
-        <Carrier_address>13th Floor, Portland M A M Tower, 226 Strand Road, Bangla Bazar, Chattogram, Bangladesh.</Carrier_address>
-      </Carrier>
-      <Shipping_Agent>
-        Shipping_Agent>
-              <Shipping_Agent_code>OLL</Shipping_Agent_code>
-              <Shipping_Agent_name>ONE LINE LTD.</Shipping_Agent_name>
-            </Shipping_Agent>
-      <Exporter>
-        <Exporter_name>PERFECT FILAMENTS LTD</Exporter_name>
-        <Exporter_address>MAHARASHTRA,INDIA</Exporter_address>
-      </Exporter>
-      <Notify>
-        <Notify_code>000368453-0103</Notify_code>
-        <Notify_name>ECHOTEX LIMITED</Notify_name>
-        <Notify_address>GAZIPUR,BANGLADESH</Notify_address>
-      </Notify>
-      <Consignee>
-        <Consignee_code>000002689-0002</Consignee_code>
-        <Consignee_name>STANDARD CHARTERED BANK</Consignee_name>
-        <Consignee_address>DHAKA,BANGLADESH</Consignee_address>
-      </Consignee>
-    </Traders_segment>
-    <ctn_segment>
-      <Ctn_reference>HJLU1233475</Ctn_reference>
-      <Number_of_packages>309</Number_of_packages>
-      <Type_of_container>22G1</Type_of_container>
-      <Status>FCL</Status>
-      <Seal_number>000421</Seal_number>
-      <IMCO></IMCO>
-      <UN></UN>
-      <Ctn_location></Ctn_location>
-      <Commodity_code>35</Commodity_code>
-      <Gross_weight>10700.21</Gross_weight>
-      <Verified_Gross_Mass>12900.21</Verified_Gross_Mass>
-    </ctn_segment>
-    <Goods_segment>
-      <Number_of_packages>309</Number_of_packages>
-      <Package_type_code>CT</Package_type_code>
-      <Gross_mass>10700.21</Gross_mass>
-      <Shipping_marks>N/M</Shipping_marks>
-      <Goods_description>100 PERCENT POLYESTER TEXTURED YARN. YARN FOR 100 PCT EXPORT
-75/36 SD NIM RECYCLE
-75/36 BLACK NIM</Goods_description>
-      <Volume_in_cubic_meters>0</Volume_in_cubic_meters>
-      <Num_of_ctn_for_this_bol>1</Num_of_ctn_for_this_bol>
-      <Remarks></Remarks>
-    </Goods_segment>
-    <Value_segment>
-      <Freight_segment>
-        <Freight_value>0</Freight_value>
-        <Freight_currency>xxx</Freight_currency>
-      </Freight_segment>
-    </Value_segment>
-  </Bol_segment>
-  
-    ----------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-  
-  
-  <Bol_segment>
-    <Bol_id>
-      <Bol_reference>ACENSACGP005825</Bol_reference>
-      <Line_number>3</Line_number>
-      <Bol_nature>23</Bol_nature>
-      <Bol_type_code>HSB</Bol_type_code>
-      <DG_status></DG_status>
-    </Bol_id>
-    <Consolidated_Cargo>0</Consolidated_Cargo>
-    <Load_unload_place>
-      <Port_of_origin_code>INNSA</Port_of_origin_code>
-      <Place_of_unloading_code>BDCGP</Place_of_unloading_code>
-    </Load_unload_place>
-    <Traders_segment>
-      <Carrier>
-        <Carrier_code>301093439</Carrier_code>
-        <Carrier_name>MMG SHIPPING LINES LTD.</Carrier_name>
-        <Carrier_address>13th Floor, Portland M A M Tower, 226 Strand Road, Bangla Bazar, Chattogram, Bangladesh.</Carrier_address>
-      </Carrier>
-      <Shipping_Agent>
-        Shipping_Agent>
-              <Shipping_Agent_code>OLL</Shipping_Agent_code>
-              <Shipping_Agent_name>ONE LINE LTD.</Shipping_Agent_name>
-            </Shipping_Agent>
-      <Exporter>
-        <Exporter_name>SOLAR CHEMFERTS PVT. LTD.</Exporter_name>
-        <Exporter_address>MAHARASHTRA,INDIA</Exporter_address>
-      </Exporter>
-      <Notify>
-        <Notify_code>004874779-1106</Notify_code>
-        <Notify_name>AGRIVISION INTERNATIONAL</Notify_name>
-        <Notify_address>BOGURA,BANGLADESH</Notify_address>
-      </Notify>
-      <Consignee>
-        <Consignee_code>000000124-0002</Consignee_code>
-        <Consignee_name>ISLAMI BANK BANGLADESH PLC</Consignee_name>
-        <Consignee_address>BOGURA,BANGLADESH</Consignee_address>
-      </Consignee>
-    </Traders_segment>
-    <ctn_segment>
-      <Ctn_reference>CSLU1177879</Ctn_reference>
-      <Number_of_packages>960</Number_of_packages>
-      <Type_of_container>22G1</Type_of_container>
-      <Status>FCL</Status>
-      <Seal_number>U000255/SPPL03820410</Seal_number>
-      <IMCO></IMCO>
-      <UN></UN>
-      <Ctn_location></Ctn_location>
-      <Commodity_code>35</Commodity_code>
-      <Gross_weight>24096</Gross_weight>
-      <Verified_Gross_Mass>26296</Verified_Gross_Mass>
-    </ctn_segment>
-    <ctn_segment>
-      <Ctn_reference>JZPU1107434</Ctn_reference>
-      <Number_of_packages>960</Number_of_packages>
-      <Type_of_container>22G1</Type_of_container>
-      <Status>FCL</Status>
-      <Seal_number>U000256/SPPL03820411</Seal_number>
-      <IMCO></IMCO>
-      <UN></UN>
-      <Ctn_location></Ctn_location>
-      <Commodity_code>35</Commodity_code>
-      <Gross_weight>24096</Gross_weight>
-      <Verified_Gross_Mass>26296</Verified_Gross_Mass>
-    </ctn_segment>
-    <Goods_segment>
-      <Number_of_packages>1920</Number_of_packages>
-      <Package_type_code>BG</Package_type_code>
-      <Gross_mass>48192</Gross_mass>
-      <Shipping_marks>N/M</Shipping_marks>
-      <Goods_description>FUNGICIDE FOR AGRICULTURAL USE ONLY
-EGSUL 80WDG
-SULPHUR 80 PERCENT WDG</Goods_description>
-      <Volume_in_cubic_meters>0</Volume_in_cubic_meters>
-      <Num_of_ctn_for_this_bol>2</Num_of_ctn_for_this_bol>
-      <Remarks></Remarks>
-    </Goods_segment>
-    <Value_segment>
-      <Freight_segment>
-        <Freight_value>0</Freight_value>
-        <Freight_currency>xxx</Freight_currency>
-      </Freight_segment>
-    </Value_segment>
-  </Bol_segment>
-  
-    ----------------------------------------------------------------------------------------------------------------------------------------------------------------
-  
-  
-  <Bol_segment>
-    <Bol_id>
-      <Bol_reference>ACENSACGP005925</Bol_reference>
-      <Line_number>4</Line_number>
-      <Bol_nature>23</Bol_nature>
-      <Bol_type_code>HSB</Bol_type_code>
-      <DG_status></DG_status>
-    </Bol_id>
-    <Consolidated_Cargo>0</Consolidated_Cargo>
-    <Load_unload_place>
-      <Port_of_origin_code>INNSA</Port_of_origin_code>
-      <Place_of_unloading_code>BDCGP</Place_of_unloading_code>
-    </Load_unload_place>
-    <Traders_segment>
-      <Carrier>
-        <Carrier_code>301093439</Carrier_code>
-        <Carrier_name>MMG SHIPPING LINES LTD.</Carrier_name>
-        <Carrier_address>13th Floor, Portland M A M Tower, 226 Strand Road, Bangla Bazar, Chattogram, Bangladesh.</Carrier_address>
-      </Carrier>
-      <Shipping_Agent>
-        Shipping_Agent>
-              <Shipping_Agent_code>OLL</Shipping_Agent_code>
-              <Shipping_Agent_name>ONE LINE LTD.</Shipping_Agent_name>
-            </Shipping_Agent>
-      <Exporter>
-        <Exporter_name>SOLAR CHEMFERTS PVT. LTD.</Exporter_name>
-        <Exporter_address>MAHARASHTRA,INDIA</Exporter_address>
-      </Exporter>
-      <Notify>
-        <Notify_code>006472244-1106</Notify_code>
-        <Notify_name>NEWS CHAMICALS INDUSTRIES</Notify_name>
-        <Notify_address>DHAKA,BANGLADESH</Notify_address>
-      </Notify>
-      <Consignee>
-        <Consignee_code>000483356-0202</Consignee_code>
-        <Consignee_name>NATIONAL CREDIT AND COMMERCE BANK PLC</Consignee_name>
-        <Consignee_address>DHAKA,BANGLADESH</Consignee_address>
-      </Consignee>
-    </Traders_segment>
-    <ctn_segment>
-      <Ctn_reference>CSKU2362724</Ctn_reference>
-      <Number_of_packages>960</Number_of_packages>
-      <Type_of_container>22G1</Type_of_container>
-      <Status>FCL</Status>
-      <Seal_number>000424/SPPL03820413</Seal_number>
-      <IMCO></IMCO>
-      <UN></UN>
-      <Ctn_location></Ctn_location>
-      <Commodity_code>35</Commodity_code>
-      <Gross_weight>24096</Gross_weight>
-      <Verified_Gross_Mass>26296</Verified_Gross_Mass>
-    </ctn_segment>
-    <ctn_segment>
-      <Ctn_reference>CBHU5844691</Ctn_reference>
-      <Number_of_packages>960</Number_of_packages>
-      <Type_of_container>22G1</Type_of_container>
-      <Status>FCL</Status>
-      <Seal_number>000430/SPPL03820414</Seal_number>
-      <IMCO></IMCO>
-      <UN></UN>
-      <Ctn_location></Ctn_location>
-      <Commodity_code>35</Commodity_code>
-      <Gross_weight>24096</Gross_weight>
-      <Verified_Gross_Mass>26296</Verified_Gross_Mass>
-    </ctn_segment>
-    <Goods_segment>
-      <Number_of_packages>1920</Number_of_packages>
-      <Package_type_code>BG</Package_type_code>
-      <Gross_mass>48192</Gross_mass>
-      <Shipping_marks>N/M</Shipping_marks>
-      <Goods_description>FUNGICIDE FOR AGRICULTURAL USE ONLY:
-01.ITEM NAME: NEWSVIT 80 WDG(SULPHUR 80 PERCENT WDG)</Goods_description>
-      <Volume_in_cubic_meters>0</Volume_in_cubic_meters>
-      <Num_of_ctn_for_this_bol>2</Num_of_ctn_for_this_bol>
-      <Remarks></Remarks>
-    </Goods_segment>
-    <Value_segment>
-      <Freight_segment>
-        <Freight_value>0</Freight_value>
-        <Freight_currency>xxx</Freight_currency>
-      </Freight_segment>
-    </Value_segment>
-  </Bol_segment>
-  
-  
-    ----------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-  
-  <Bol_segment>
-    <Bol_id>
-      <Bol_reference>ACENSACGP006025</Bol_reference>
-      <Line_number>5</Line_number>
-      <Bol_nature>23</Bol_nature>
-      <Bol_type_code>HSB</Bol_type_code>
-      <DG_status></DG_status>
-    </Bol_id>
-    <Consolidated_Cargo>0</Consolidated_Cargo>
-    <Load_unload_place>
-      <Port_of_origin_code>INNSA</Port_of_origin_code>
-      <Place_of_unloading_code>BDCGP</Place_of_unloading_code>
-    </Load_unload_place>
-    <Traders_segment>
-      <Carrier>
-        <Carrier_code>301093439</Carrier_code>
-        <Carrier_name>MMG SHIPPING LINES LTD.</Carrier_name>
-        <Carrier_address>13th Floor, Portland M A M Tower, 226 Strand Road, Bangla Bazar, Chattogram, Bangladesh.</Carrier_address>
-      </Carrier>
-      <Shipping_Agent>
-        Shipping_Agent>
-              <Shipping_Agent_code>OLL</Shipping_Agent_code>
-              <Shipping_Agent_name>ONE LINE LTD.</Shipping_Agent_name>
-            </Shipping_Agent>
-      <Exporter>
-        <Exporter_name>SOLAR CHEMFERTS PVT. LTD.</Exporter_name>
-        <Exporter_address>MAHARASHTRA,INDIA</Exporter_address>
-      </Exporter>
-      <Notify>
-        <Notify_code>001760054-0103</Notify_code>
-        <Notify_name>EVERGREEN CROP CARE LIMITED</Notify_name>
-        <Notify_address>DHAKA,BANGLADESH</Notify_address>
-      </Notify>
-      <Consignee>
-        <Consignee_code>000000275-0002</Consignee_code>
-        <Consignee_name>BANK ASIA LTD</Consignee_name>
-        <Consignee_address>DHAKA,BANGLADESH</Consignee_address>
-      </Consignee>
-    </Traders_segment>
-    <ctn_segment>
-      <Ctn_reference>TEMU4563287</Ctn_reference>
-      <Number_of_packages>960</Number_of_packages>
-      <Type_of_container>22G1</Type_of_container>
-      <Status>FCL</Status>
-      <Seal_number>000681/SPPL03820412</Seal_number>
-      <IMCO></IMCO>
-      <UN></UN>
-      <Ctn_location></Ctn_location>
-      <Commodity_code>35</Commodity_code>
-      <Gross_weight>24096</Gross_weight>
-      <Verified_Gross_Mass>26296</Verified_Gross_Mass>
-    </ctn_segment>
-    <Goods_segment>
-      <Number_of_packages>960</Number_of_packages>
-      <Package_type_code>BG</Package_type_code>
-      <Gross_mass>24096</Gross_mass>
-      <Shipping_marks>N/M</Shipping_marks>
-      <Goods_description>EVERSULF 80 DF (SULPHUR 80 DF)
-FUNGICIDE FOR AGRICULTUTAL USE</Goods_description>
-      <Volume_in_cubic_meters>0</Volume_in_cubic_meters>
-      <Num_of_ctn_for_this_bol>1</Num_of_ctn_for_this_bol>
-      <Remarks></Remarks>
-    </Goods_segment>
-    <Value_segment>
-      <Freight_segment>
-        <Freight_value>0</Freight_value>
-        <Freight_currency>xxx</Freight_currency>
-      </Freight_segment>
-    </Value_segment>
-  </Bol_segment>
-  
-  
-    ----------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-  
-  <Bol_segment>
-    <Bol_id>
-      <Bol_reference>ALSCON-00257</Bol_reference>
-      <Line_number>6</Line_number>
-      <Bol_nature>23</Bol_nature>
-      <Bol_type_code>HSB</Bol_type_code>
-      <DG_status></DG_status>
-    </Bol_id>
-    <Consolidated_Cargo>0</Consolidated_Cargo>
-    <Load_unload_place>
-      <Port_of_origin_code>INNSA</Port_of_origin_code>
-      <Place_of_unloading_code>BDCGP</Place_of_unloading_code>
-    </Load_unload_place>
-    <Traders_segment>
-      <Carrier>
-        <Carrier_code>301093439</Carrier_code>
-        <Carrier_name>MMG SHIPPING LINES LTD.</Carrier_name>
-        <Carrier_address>13th Floor, Portland M A M Tower, 226 Strand Road, Bangla Bazar, Chattogram, Bangladesh.</Carrier_address>
-      </Carrier>
-      <Shipping_Agent>
-        Shipping_Agent>
-              <Shipping_Agent_code>OLL</Shipping_Agent_code>
-              <Shipping_Agent_name>ONE LINE LTD.</Shipping_Agent_name>
-            </Shipping_Agent>
-      <Exporter>
-        <Exporter_name>ROSSARI BIOTECH LIMITED</Exporter_name>
-        <Exporter_address>MUMBAI,INDIA</Exporter_address>
-      </Exporter>
-      <Notify>
-        <Notify_code>000192848-0103</Notify_code>
-        <Notify_name>TUSUKA PROCESSING LTD.</Notify_name>
-        <Notify_address>GAZIPUR,BANGLADESH</Notify_address>
-      </Notify>
-      <Consignee>
-        <Consignee_code>000000839-0002</Consignee_code>
-        <Consignee_name>UTTARA BANK PLC</Consignee_name>
-        <Consignee_address>DHAKA,BANGLADESH</Consignee_address>
-      </Consignee>
-    </Traders_segment>
-    <ctn_segment>
-      <Ctn_reference>FSCU7789570</Ctn_reference>
-      <Number_of_packages>715</Number_of_packages>
-      <Type_of_container>22G1</Type_of_container>
-      <Status>FCL</Status>
-      <Seal_number>008182</Seal_number>
-      <IMCO></IMCO>
-      <UN></UN>
-      <Ctn_location></Ctn_location>
-      <Commodity_code>35</Commodity_code>
-      <Gross_weight>25132.25</Gross_weight>
-      <Verified_Gross_Mass>27332.25</Verified_Gross_Mass>
-    </ctn_segment>
-    <ctn_segment>
-      <Ctn_reference>MSCU3231165</Ctn_reference>
-      <Number_of_packages>715</Number_of_packages>
-      <Type_of_container>22G1</Type_of_container>
-      <Status>FCL</Status>
-      <Seal_number>006463</Seal_number>
-      <IMCO></IMCO>
-      <UN></UN>
-      <Ctn_location></Ctn_location>
-      <Commodity_code>35</Commodity_code>
-      <Gross_weight>25132.25</Gross_weight>
-      <Verified_Gross_Mass>27332.25</Verified_Gross_Mass>
-    </ctn_segment>
-    <Goods_segment>
-      <Number_of_packages>1430</Number_of_packages>
-      <Package_type_code>PK</Package_type_code>
-      <Gross_mass>50264.5</Gross_mass>
-      <Shipping_marks>N/M</Shipping_marks>
-      <Goods_description>CHEMICAL FOR 100 PCT EXPORT ORIENTED RMG WASHING INDUSTRY:
-SODA ASH (GREENSODA 1000 POWDER)</Goods_description>
-      <Volume_in_cubic_meters>0</Volume_in_cubic_meters>
-      <Num_of_ctn_for_this_bol>2</Num_of_ctn_for_this_bol>
-      <Remarks></Remarks>
-    </Goods_segment>
+  ${prepareMultiBLSection()}
     <Value_segment>
       <Freight_segment>
         <Freight_value>0</Freight_value>
@@ -818,6 +415,484 @@ SODA ASH (GREENSODA 1000 POWDER)</Goods_description>
 </Awmds>
 """;
 
+    log(structure);
   }
-
 }
+
+/**
+ *
+    <Bol_segment>
+    <Bol_id>
+    <Bol_reference>${blNo[0].value}</Bol_reference>
+    <Line_number>${blLineNo[0].value}</Line_number>
+    <Bol_nature>${blNature[0].value}</Bol_nature>
+    <Bol_type_code>${blTypeCode[0].value}</Bol_type_code>
+    <DG_status>${dgStatus[0].value}</DG_status>
+    </Bol_id>
+    <Consolidated_Cargo>${lclConsolidated[0].value}</Consolidated_Cargo>
+    <Load_unload_place>
+    <Port_of_origin_code>${blLoadPortDt[0].value}</Port_of_origin_code>
+    <Place_of_unloading_code>${placeOfUnload[0].value}</Place_of_unloading_code>
+    </Load_unload_place>
+    <Traders_segment>
+    <Carrier>
+    <Carrier_code>301093439</Carrier_code>
+    <Carrier_name>MMG SHIPPING LINES LTD.</Carrier_name>
+    <Carrier_address>13th Floor, Portland M A M Tower, 226 Strand Road, Bangla Bazar, Chattogram, Bangladesh.</Carrier_address>
+    </Carrier>
+    <Shipping_Agent>
+    Shipping_Agent>
+    <Shipping_Agent_code>OLL</Shipping_Agent_code>
+    <Shipping_Agent_name>ONE LINE LTD.</Shipping_Agent_name>
+    </Shipping_Agent>
+    <Exporter>
+    <Exporter_name>${exporter[0].value}</Exporter_name>
+    <Exporter_address>${exporterAddress[0].value}</Exporter_address>
+    </Exporter>
+    <Notify>
+    <Notify_code>${notifyCode[0].value}</Notify_code>
+    <Notify_name>${notifyParty[0].value}</Notify_name>
+    <Notify_address>${notifyAddress[0].value}</Notify_address>
+    </Notify>
+    <Consignee>
+    <Consignee_code>${consigneeCode[0].value}</Consignee_code>
+    <Consignee_name>${consignee[0].value}</Consignee_name>
+    <Consignee_address>${consigneeAddress[0].value}</Consignee_address>
+    </Consignee>
+    </Traders_segment>
+    <ctn_segment>
+    <Ctn_reference>${contPrefixes[0][0].value}${contNos[0][0].value}</Ctn_reference>
+    <Number_of_packages>${quantity[0].value}</Number_of_packages>
+    <Type_of_container>${contTypes[0][0].value}</Type_of_container>
+    <Status>${statuses[0][0].value}</Status>
+    <Seal_number>${sealNos[0][0].value}</Seal_number>
+    <IMCO>${imcos[0][0].value}</IMCO>
+    <UN>${uns[0][0].value}</UN>
+    <Ctn_location>${portOfLanding[0].value}</Ctn_location>
+    <Commodity_code>${commoCodes[0][0].value}</Commodity_code>
+    <Gross_weight>${weightKgms[0][0].value}</Gross_weight>
+    <Verified_Gross_Mass>${vgmQtys[0][0].value}</Verified_Gross_Mass>
+    </ctn_segment>
+    <Goods_segment>
+    <Number_of_packages>${quantity[0].value}</Number_of_packages>
+    <Package_type_code>${quantity2[0].value}</Package_type_code>
+    <Gross_mass>${weightKgms[0][0].value}</Gross_mass>
+    <Shipping_marks>${marks[0].value}</Shipping_marks>
+    <Goods_description>${commodity[0].value}</Goods_description>
+    <Volume_in_cubic_meters>${contVolumes[0][0].value}</Volume_in_cubic_meters>
+    <Num_of_ctn_for_this_bol>${contNos.length.toString()}</Num_of_ctn_for_this_bol>
+    <Remarks></Remarks>
+    </Goods_segment>
+    <Value_segment>
+    <Freight_segment>
+    <Freight_value>0</Freight_value>
+    <Freight_currency>xxx</Freight_currency>
+    </Freight_segment>
+    </Value_segment>
+    </Bol_segment>
+ *
+ * ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    <Bol_segment>
+    <Bol_id>
+    <Bol_reference>ACENSACGP005625</Bol_reference>
+    <Line_number>2</Line_number>
+    <Bol_nature>23</Bol_nature>
+    <Bol_type_code>HSB</Bol_type_code>
+    <DG_status></DG_status>
+    </Bol_id>
+    <Consolidated_Cargo>0</Consolidated_Cargo>
+    <Load_unload_place>
+    <Port_of_origin_code>INNSA</Port_of_origin_code>
+    <Place_of_unloading_code>BDCGP</Place_of_unloading_code>
+    </Load_unload_place>
+    <Traders_segment>
+    <Carrier>
+    <Carrier_code>301093439</Carrier_code>
+    <Carrier_name>MMG SHIPPING LINES LTD.</Carrier_name>
+    <Carrier_address>13th Floor, Portland M A M Tower, 226 Strand Road, Bangla Bazar, Chattogram, Bangladesh.</Carrier_address>
+    </Carrier>
+    <Shipping_Agent>
+    Shipping_Agent>
+    <Shipping_Agent_code>OLL</Shipping_Agent_code>
+    <Shipping_Agent_name>ONE LINE LTD.</Shipping_Agent_name>
+    </Shipping_Agent>
+    <Exporter>
+    <Exporter_name>PERFECT FILAMENTS LTD</Exporter_name>
+    <Exporter_address>MAHARASHTRA,INDIA</Exporter_address>
+    </Exporter>
+    <Notify>
+    <Notify_code>000368453-0103</Notify_code>
+    <Notify_name>ECHOTEX LIMITED</Notify_name>
+    <Notify_address>GAZIPUR,BANGLADESH</Notify_address>
+    </Notify>
+    <Consignee>
+    <Consignee_code>000002689-0002</Consignee_code>
+    <Consignee_name>STANDARD CHARTERED BANK</Consignee_name>
+    <Consignee_address>DHAKA,BANGLADESH</Consignee_address>
+    </Consignee>
+    </Traders_segment>
+    <ctn_segment>
+    <Ctn_reference>HJLU1233475</Ctn_reference>
+    <Number_of_packages>309</Number_of_packages>
+    <Type_of_container>22G1</Type_of_container>
+    <Status>FCL</Status>
+    <Seal_number>000421</Seal_number>
+    <IMCO></IMCO>
+    <UN></UN>
+    <Ctn_location></Ctn_location>
+    <Commodity_code>35</Commodity_code>
+    <Gross_weight>10700.21</Gross_weight>
+    <Verified_Gross_Mass>12900.21</Verified_Gross_Mass>
+    </ctn_segment>
+    <Goods_segment>
+    <Number_of_packages>309</Number_of_packages>
+    <Package_type_code>CT</Package_type_code>
+    <Gross_mass>10700.21</Gross_mass>
+    <Shipping_marks>N/M</Shipping_marks>
+    <Goods_description>100 PERCENT POLYESTER TEXTURED YARN. YARN FOR 100 PCT EXPORT
+    75/36 SD NIM RECYCLE
+    75/36 BLACK NIM</Goods_description>
+    <Volume_in_cubic_meters>0</Volume_in_cubic_meters>
+    <Num_of_ctn_for_this_bol>1</Num_of_ctn_for_this_bol>
+    <Remarks></Remarks>
+    </Goods_segment>
+    <Value_segment>
+    <Freight_segment>
+    <Freight_value>0</Freight_value>
+    <Freight_currency>xxx</Freight_currency>
+    </Freight_segment>
+    </Value_segment>
+    </Bol_segment>
+
+    ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+    <Bol_segment>
+    <Bol_id>
+    <Bol_reference>ACENSACGP005825</Bol_reference>
+    <Line_number>3</Line_number>
+    <Bol_nature>23</Bol_nature>
+    <Bol_type_code>HSB</Bol_type_code>
+    <DG_status></DG_status>
+    </Bol_id>
+    <Consolidated_Cargo>0</Consolidated_Cargo>
+    <Load_unload_place>
+    <Port_of_origin_code>INNSA</Port_of_origin_code>
+    <Place_of_unloading_code>BDCGP</Place_of_unloading_code>
+    </Load_unload_place>
+    <Traders_segment>
+    <Carrier>
+    <Carrier_code>301093439</Carrier_code>
+    <Carrier_name>MMG SHIPPING LINES LTD.</Carrier_name>
+    <Carrier_address>13th Floor, Portland M A M Tower, 226 Strand Road, Bangla Bazar, Chattogram, Bangladesh.</Carrier_address>
+    </Carrier>
+    <Shipping_Agent>
+    Shipping_Agent>
+    <Shipping_Agent_code>OLL</Shipping_Agent_code>
+    <Shipping_Agent_name>ONE LINE LTD.</Shipping_Agent_name>
+    </Shipping_Agent>
+    <Exporter>
+    <Exporter_name>SOLAR CHEMFERTS PVT. LTD.</Exporter_name>
+    <Exporter_address>MAHARASHTRA,INDIA</Exporter_address>
+    </Exporter>
+    <Notify>
+    <Notify_code>004874779-1106</Notify_code>
+    <Notify_name>AGRIVISION INTERNATIONAL</Notify_name>
+    <Notify_address>BOGURA,BANGLADESH</Notify_address>
+    </Notify>
+    <Consignee>
+    <Consignee_code>000000124-0002</Consignee_code>
+    <Consignee_name>ISLAMI BANK BANGLADESH PLC</Consignee_name>
+    <Consignee_address>BOGURA,BANGLADESH</Consignee_address>
+    </Consignee>
+    </Traders_segment>
+    <ctn_segment>
+    <Ctn_reference>CSLU1177879</Ctn_reference>
+    <Number_of_packages>960</Number_of_packages>
+    <Type_of_container>22G1</Type_of_container>
+    <Status>FCL</Status>
+    <Seal_number>U000255/SPPL03820410</Seal_number>
+    <IMCO></IMCO>
+    <UN></UN>
+    <Ctn_location></Ctn_location>
+    <Commodity_code>35</Commodity_code>
+    <Gross_weight>24096</Gross_weight>
+    <Verified_Gross_Mass>26296</Verified_Gross_Mass>
+    </ctn_segment>
+    <ctn_segment>
+    <Ctn_reference>JZPU1107434</Ctn_reference>
+    <Number_of_packages>960</Number_of_packages>
+    <Type_of_container>22G1</Type_of_container>
+    <Status>FCL</Status>
+    <Seal_number>U000256/SPPL03820411</Seal_number>
+    <IMCO></IMCO>
+    <UN></UN>
+    <Ctn_location></Ctn_location>
+    <Commodity_code>35</Commodity_code>
+    <Gross_weight>24096</Gross_weight>
+    <Verified_Gross_Mass>26296</Verified_Gross_Mass>
+    </ctn_segment>
+    <Goods_segment>
+    <Number_of_packages>1920</Number_of_packages>
+    <Package_type_code>BG</Package_type_code>
+    <Gross_mass>48192</Gross_mass>
+    <Shipping_marks>N/M</Shipping_marks>
+    <Goods_description>FUNGICIDE FOR AGRICULTURAL USE ONLY
+    EGSUL 80WDG
+    SULPHUR 80 PERCENT WDG</Goods_description>
+    <Volume_in_cubic_meters>0</Volume_in_cubic_meters>
+    <Num_of_ctn_for_this_bol>2</Num_of_ctn_for_this_bol>
+    <Remarks></Remarks>
+    </Goods_segment>
+    <Value_segment>
+    <Freight_segment>
+    <Freight_value>0</Freight_value>
+    <Freight_currency>xxx</Freight_currency>
+    </Freight_segment>
+    </Value_segment>
+    </Bol_segment>
+
+    ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+    <Bol_segment>
+    <Bol_id>
+    <Bol_reference>ACENSACGP005925</Bol_reference>
+    <Line_number>4</Line_number>
+    <Bol_nature>23</Bol_nature>
+    <Bol_type_code>HSB</Bol_type_code>
+    <DG_status></DG_status>
+    </Bol_id>
+    <Consolidated_Cargo>0</Consolidated_Cargo>
+    <Load_unload_place>
+    <Port_of_origin_code>INNSA</Port_of_origin_code>
+    <Place_of_unloading_code>BDCGP</Place_of_unloading_code>
+    </Load_unload_place>
+    <Traders_segment>
+    <Carrier>
+    <Carrier_code>301093439</Carrier_code>
+    <Carrier_name>MMG SHIPPING LINES LTD.</Carrier_name>
+    <Carrier_address>13th Floor, Portland M A M Tower, 226 Strand Road, Bangla Bazar, Chattogram, Bangladesh.</Carrier_address>
+    </Carrier>
+    <Shipping_Agent>
+    Shipping_Agent>
+    <Shipping_Agent_code>OLL</Shipping_Agent_code>
+    <Shipping_Agent_name>ONE LINE LTD.</Shipping_Agent_name>
+    </Shipping_Agent>
+    <Exporter>
+    <Exporter_name>SOLAR CHEMFERTS PVT. LTD.</Exporter_name>
+    <Exporter_address>MAHARASHTRA,INDIA</Exporter_address>
+    </Exporter>
+    <Notify>
+    <Notify_code>006472244-1106</Notify_code>
+    <Notify_name>NEWS CHAMICALS INDUSTRIES</Notify_name>
+    <Notify_address>DHAKA,BANGLADESH</Notify_address>
+    </Notify>
+    <Consignee>
+    <Consignee_code>000483356-0202</Consignee_code>
+    <Consignee_name>NATIONAL CREDIT AND COMMERCE BANK PLC</Consignee_name>
+    <Consignee_address>DHAKA,BANGLADESH</Consignee_address>
+    </Consignee>
+    </Traders_segment>
+    <ctn_segment>
+    <Ctn_reference>CSKU2362724</Ctn_reference>
+    <Number_of_packages>960</Number_of_packages>
+    <Type_of_container>22G1</Type_of_container>
+    <Status>FCL</Status>
+    <Seal_number>000424/SPPL03820413</Seal_number>
+    <IMCO></IMCO>
+    <UN></UN>
+    <Ctn_location></Ctn_location>
+    <Commodity_code>35</Commodity_code>
+    <Gross_weight>24096</Gross_weight>
+    <Verified_Gross_Mass>26296</Verified_Gross_Mass>
+    </ctn_segment>
+    <ctn_segment>
+    <Ctn_reference>CBHU5844691</Ctn_reference>
+    <Number_of_packages>960</Number_of_packages>
+    <Type_of_container>22G1</Type_of_container>
+    <Status>FCL</Status>
+    <Seal_number>000430/SPPL03820414</Seal_number>
+    <IMCO></IMCO>
+    <UN></UN>
+    <Ctn_location></Ctn_location>
+    <Commodity_code>35</Commodity_code>
+    <Gross_weight>24096</Gross_weight>
+    <Verified_Gross_Mass>26296</Verified_Gross_Mass>
+    </ctn_segment>
+    <Goods_segment>
+    <Number_of_packages>1920</Number_of_packages>
+    <Package_type_code>BG</Package_type_code>
+    <Gross_mass>48192</Gross_mass>
+    <Shipping_marks>N/M</Shipping_marks>
+    <Goods_description>FUNGICIDE FOR AGRICULTURAL USE ONLY:
+    01.ITEM NAME: NEWSVIT 80 WDG(SULPHUR 80 PERCENT WDG)</Goods_description>
+    <Volume_in_cubic_meters>0</Volume_in_cubic_meters>
+    <Num_of_ctn_for_this_bol>2</Num_of_ctn_for_this_bol>
+    <Remarks></Remarks>
+    </Goods_segment>
+    <Value_segment>
+    <Freight_segment>
+    <Freight_value>0</Freight_value>
+    <Freight_currency>xxx</Freight_currency>
+    </Freight_segment>
+    </Value_segment>
+    </Bol_segment>
+
+
+    ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+    <Bol_segment>
+    <Bol_id>
+    <Bol_reference>ACENSACGP006025</Bol_reference>
+    <Line_number>5</Line_number>
+    <Bol_nature>23</Bol_nature>
+    <Bol_type_code>HSB</Bol_type_code>
+    <DG_status></DG_status>
+    </Bol_id>
+    <Consolidated_Cargo>0</Consolidated_Cargo>
+    <Load_unload_place>
+    <Port_of_origin_code>INNSA</Port_of_origin_code>
+    <Place_of_unloading_code>BDCGP</Place_of_unloading_code>
+    </Load_unload_place>
+    <Traders_segment>
+    <Carrier>
+    <Carrier_code>301093439</Carrier_code>
+    <Carrier_name>MMG SHIPPING LINES LTD.</Carrier_name>
+    <Carrier_address>13th Floor, Portland M A M Tower, 226 Strand Road, Bangla Bazar, Chattogram, Bangladesh.</Carrier_address>
+    </Carrier>
+    <Shipping_Agent>
+    Shipping_Agent>
+    <Shipping_Agent_code>OLL</Shipping_Agent_code>
+    <Shipping_Agent_name>ONE LINE LTD.</Shipping_Agent_name>
+    </Shipping_Agent>
+    <Exporter>
+    <Exporter_name>SOLAR CHEMFERTS PVT. LTD.</Exporter_name>
+    <Exporter_address>MAHARASHTRA,INDIA</Exporter_address>
+    </Exporter>
+    <Notify>
+    <Notify_code>001760054-0103</Notify_code>
+    <Notify_name>EVERGREEN CROP CARE LIMITED</Notify_name>
+    <Notify_address>DHAKA,BANGLADESH</Notify_address>
+    </Notify>
+    <Consignee>
+    <Consignee_code>000000275-0002</Consignee_code>
+    <Consignee_name>BANK ASIA LTD</Consignee_name>
+    <Consignee_address>DHAKA,BANGLADESH</Consignee_address>
+    </Consignee>
+    </Traders_segment>
+    <ctn_segment>
+    <Ctn_reference>TEMU4563287</Ctn_reference>
+    <Number_of_packages>960</Number_of_packages>
+    <Type_of_container>22G1</Type_of_container>
+    <Status>FCL</Status>
+    <Seal_number>000681/SPPL03820412</Seal_number>
+    <IMCO></IMCO>
+    <UN></UN>
+    <Ctn_location></Ctn_location>
+    <Commodity_code>35</Commodity_code>
+    <Gross_weight>24096</Gross_weight>
+    <Verified_Gross_Mass>26296</Verified_Gross_Mass>
+    </ctn_segment>
+    <Goods_segment>
+    <Number_of_packages>960</Number_of_packages>
+    <Package_type_code>BG</Package_type_code>
+    <Gross_mass>24096</Gross_mass>
+    <Shipping_marks>N/M</Shipping_marks>
+    <Goods_description>EVERSULF 80 DF (SULPHUR 80 DF)
+    FUNGICIDE FOR AGRICULTUTAL USE</Goods_description>
+    <Volume_in_cubic_meters>0</Volume_in_cubic_meters>
+    <Num_of_ctn_for_this_bol>1</Num_of_ctn_for_this_bol>
+    <Remarks></Remarks>
+    </Goods_segment>
+    <Value_segment>
+    <Freight_segment>
+    <Freight_value>0</Freight_value>
+    <Freight_currency>xxx</Freight_currency>
+    </Freight_segment>
+    </Value_segment>
+    </Bol_segment>
+
+
+    ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+    <Bol_segment>
+    <Bol_id>
+    <Bol_reference>ALSCON-00257</Bol_reference>
+    <Line_number>6</Line_number>
+    <Bol_nature>23</Bol_nature>
+    <Bol_type_code>HSB</Bol_type_code>
+    <DG_status></DG_status>
+    </Bol_id>
+    <Consolidated_Cargo>0</Consolidated_Cargo>
+    <Load_unload_place>
+    <Port_of_origin_code>INNSA</Port_of_origin_code>
+    <Place_of_unloading_code>BDCGP</Place_of_unloading_code>
+    </Load_unload_place>
+    <Traders_segment>
+    <Carrier>
+    <Carrier_code>301093439</Carrier_code>
+    <Carrier_name>MMG SHIPPING LINES LTD.</Carrier_name>
+    <Carrier_address>13th Floor, Portland M A M Tower, 226 Strand Road, Bangla Bazar, Chattogram, Bangladesh.</Carrier_address>
+    </Carrier>
+    <Shipping_Agent>
+    Shipping_Agent>
+    <Shipping_Agent_code>OLL</Shipping_Agent_code>
+    <Shipping_Agent_name>ONE LINE LTD.</Shipping_Agent_name>
+    </Shipping_Agent>
+    <Exporter>
+    <Exporter_name>ROSSARI BIOTECH LIMITED</Exporter_name>
+    <Exporter_address>MUMBAI,INDIA</Exporter_address>
+    </Exporter>
+    <Notify>
+    <Notify_code>000192848-0103</Notify_code>
+    <Notify_name>TUSUKA PROCESSING LTD.</Notify_name>
+    <Notify_address>GAZIPUR,BANGLADESH</Notify_address>
+    </Notify>
+    <Consignee>
+    <Consignee_code>000000839-0002</Consignee_code>
+    <Consignee_name>UTTARA BANK PLC</Consignee_name>
+    <Consignee_address>DHAKA,BANGLADESH</Consignee_address>
+    </Consignee>
+    </Traders_segment>
+    <ctn_segment>
+    <Ctn_reference>FSCU7789570</Ctn_reference>
+    <Number_of_packages>715</Number_of_packages>
+    <Type_of_container>22G1</Type_of_container>
+    <Status>FCL</Status>
+    <Seal_number>008182</Seal_number>
+    <IMCO></IMCO>
+    <UN></UN>
+    <Ctn_location></Ctn_location>
+    <Commodity_code>35</Commodity_code>
+    <Gross_weight>25132.25</Gross_weight>
+    <Verified_Gross_Mass>27332.25</Verified_Gross_Mass>
+    </ctn_segment>
+    <ctn_segment>
+    <Ctn_reference>MSCU3231165</Ctn_reference>
+    <Number_of_packages>715</Number_of_packages>
+    <Type_of_container>22G1</Type_of_container>
+    <Status>FCL</Status>
+    <Seal_number>006463</Seal_number>
+    <IMCO></IMCO>
+    <UN></UN>
+    <Ctn_location></Ctn_location>
+    <Commodity_code>35</Commodity_code>
+    <Gross_weight>25132.25</Gross_weight>
+    <Verified_Gross_Mass>27332.25</Verified_Gross_Mass>
+    </ctn_segment>
+    <Goods_segment>
+    <Number_of_packages>1430</Number_of_packages>
+    <Package_type_code>PK</Package_type_code>
+    <Gross_mass>50264.5</Gross_mass>
+    <Shipping_marks>N/M</Shipping_marks>
+    <Goods_description>CHEMICAL FOR 100 PCT EXPORT ORIENTED RMG WASHING INDUSTRY:
+    SODA ASH (GREENSODA 1000 POWDER)</Goods_description>
+    <Volume_in_cubic_meters>0</Volume_in_cubic_meters>
+    <Num_of_ctn_for_this_bol>2</Num_of_ctn_for_this_bol>
+    <Remarks></Remarks>
+    </Goods_segment>
+ */

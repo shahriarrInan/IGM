@@ -27,13 +27,19 @@ class ImportBL extends GetView<ImportBLController> {
       return tecVals;
     }
 
-    dynamic getDataOffOf2DTECs(List<List<TextEditingController>> tecs) {
-      List<RxString> tecVals = [];
+    List<List<RxString>> getDataOffOf2DTECs(
+      List<List<TextEditingController>> tecs,
+    ) {
+      List<List<RxString>> tecVals = [];
 
-      for (List t in tecs) {
-        for (var val in t) {
-          tecVals.add(val.text.obs);
+      for (var rowOfControllers in tecs) {
+        List<RxString> vals = [];
+
+        for (var v in rowOfControllers) {
+          vals.add(v.text.obs);
         }
+
+        tecVals.add(vals);
       }
 
       return tecVals;
@@ -240,11 +246,30 @@ class ImportBL extends GetView<ImportBLController> {
                                                               BorderRadius.circular(
                                                                 15,
                                                               ),
-                                                          color: Colors.white
-                                                              .withAlpha(31),
+                                                          color:
+                                                              controller
+                                                                  .empties
+                                                                  .value
+                                                                  .where(
+                                                                    (
+                                                                      test,
+                                                                    ) => test
+                                                                        .values
+                                                                        .contains(
+                                                                          "$heading-$rowIndex",
+                                                                        ),
+                                                                  )
+                                                                  .isNotEmpty
+                                                              ? Colors.redAccent
+                                                              : Colors.white
+                                                                    .withAlpha(
+                                                                      31,
+                                                                    ),
                                                         ),
                                                         child: Center(
                                                           child: TextField(
+                                                            cursorColor:
+                                                                Colors.white,
                                                             // Gets the right controller using the helper method
                                                             controller: controller
                                                                 .getControllerForCell(
@@ -347,91 +372,131 @@ class ImportBL extends GetView<ImportBLController> {
                         ),
                         SizedBox(
                           width: sizes.width * .89,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.max,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            spacing: 17,
-                            children: [
-                              LiquidGlass(
-                                clipBehavior: Clip.antiAlias,
-                                shape: const LiquidRoundedSuperellipse(
-                                  borderRadius: Radius.circular(35),
-                                ),
-                                settings: LiquidGlassSettings(
-                                  thickness: 20,
-                                  glassColor: const Color(0x09FFFFFF),
-                                  lightIntensity: 3,
-                                  blend: 40,
-                                  ambientStrength: .35,
-                                  lightAngle: math.pi / 7,
-                                  chromaticAberration: 0,
-                                  refractiveIndex: 1.1,
-                                ),
-                                child: Container(
-                                  height: sizes.appBarHeight * 1.5,
-                                  width: 400,
-                                  padding: EdgeInsets.symmetric(horizontal: 31),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    spacing: 11,
-                                    children: [
-                                      Text(
-                                        "SL_NO",
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w700,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: Container(
-                                          height: sizes.appBarHeight * .85,
-                                          decoration: BoxDecoration(
-                                            color: Colors.white.withAlpha(31),
-                                            borderRadius: BorderRadius.circular(
-                                              17,
+                          child: Center(
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.max,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                spacing: 17,
+                                children: [
+                                  LiquidGlass(
+                                    clipBehavior: Clip.antiAlias,
+                                    shape: const LiquidRoundedSuperellipse(
+                                      borderRadius: Radius.circular(35),
+                                    ),
+                                    settings: LiquidGlassSettings(
+                                      thickness: 20,
+                                      glassColor: const Color(0x09FFFFFF),
+                                      lightIntensity: 3,
+                                      blend: 40,
+                                      ambientStrength: .35,
+                                      lightAngle: math.pi / 7,
+                                      chromaticAberration: 0,
+                                      refractiveIndex: 1.1,
+                                    ),
+                                    child: Container(
+                                      height: sizes.appBarHeight * 1.5,
+                                      width: 400,
+                                      padding: EdgeInsets.symmetric(horizontal: 31),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        spacing: 11,
+                                        children: [
+                                          Text(
+                                            "SL_NO",
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w700,
+                                              color: Colors.white,
                                             ),
                                           ),
+                                          Expanded(
+                                            child: Container(
+                                              height: sizes.appBarHeight * .85,
+                                              padding: EdgeInsets.symmetric(
+                                                horizontal: 11,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: controller
+                                                    .empties
+                                                    .value
+                                                    .where(
+                                                      (
+                                                      test,
+                                                      ) => test
+                                                      .values
+                                                      .contains(
+                                                    "SL_NO-0",
+                                                  ),
+                                                )
+                                                    .isNotEmpty
+                                                    ? Colors.redAccent
+                                                    : Colors.white.withAlpha(31),
+                                                borderRadius: BorderRadius.circular(
+                                                  17,
+                                                ),
+                                              ),
+                                              child: Center(
+                                                child: TextField(
+                                                  cursorColor: Colors.white,
+                                                  // Gets the right controller using the helper method
+                                                  controller:
+                                                      controller.sl_NoTECs[0],
+                                                  textAlignVertical:
+                                                      TextAlignVertical.center,
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
+                                                  decoration: const InputDecoration(
+                                                    border: InputBorder.none,
+                                                    isDense: true,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  Container(
+                                    height: sizes.appBarHeight * .85,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(17),
+                                      color: Colors.white,
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        "      Position      ",
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.w700,
+                                          height: 0,
                                         ),
                                       ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                height: sizes.appBarHeight * .85,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(17),
-                                  color: Colors.white,
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    "      Position      ",
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.w700,
-                                      height: 0,
                                     ),
                                   ),
-                                ),
-                              ),
-                              Container(
-                                height: sizes.appBarHeight * .85,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(17),
-                                  color: Colors.white,
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    "      Feeder Vessel Info.      ",
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.w700,
-                                      height: 0,
+                                  Container(
+                                    height: sizes.appBarHeight * .85,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(17),
+                                      color: Colors.white,
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        "      Feeder Vessel Info.      ",
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.w700,
+                                          height: 0,
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
                         ),
                         Text(
@@ -535,13 +600,17 @@ class ImportBL extends GetView<ImportBLController> {
                                                   children: [
                                                     Text(
                                                       controller
-                                                              .portOfLandingTECs[controller.selectedBLIndex.value]
+                                                              .portOfLandingTECs[controller
+                                                                  .selectedBLIndex
+                                                                  .value]
                                                               .value
                                                               .text
                                                               .isEmpty
                                                           ? "CTG"
                                                           : controller
-                                                                .portOfLandingTECs[controller.selectedBLIndex.value]
+                                                                .portOfLandingTECs[controller
+                                                                    .selectedBLIndex
+                                                                    .value]
                                                                 .value
                                                                 .text,
                                                       style: const TextStyle(
@@ -595,7 +664,21 @@ class ImportBL extends GetView<ImportBLController> {
                                               decoration: BoxDecoration(
                                                 borderRadius:
                                                     BorderRadius.circular(15),
-                                                color: Colors.white.withAlpha(
+                                                color: controller
+                                                    .empties
+                                                    .value
+                                                    .where(
+                                                      (
+                                                      test,
+                                                      ) => test
+                                                      .values
+                                                      .contains(
+                                                    "Sl No.-${controller.selectedBLIndex.value}",
+                                                  ),
+                                                )
+                                                    .isNotEmpty
+                                                    ? Colors.redAccent
+                                                    : Colors.white.withAlpha(
                                                   31,
                                                 ),
                                               ),
@@ -615,8 +698,10 @@ class ImportBL extends GetView<ImportBLController> {
                                                             event
                                                                 is RawKeyDownEvent) {
                                                           print("boom");
-                                                          controller.addRowToContainerTable();
-                                                          controller.addBlTableTECs();
+                                                          controller
+                                                              .addRowToContainerTable();
+                                                          controller
+                                                              .addBlTableTECs();
                                                           controller
                                                               .selectedBLIndex
                                                               .value++;
@@ -660,9 +745,13 @@ class ImportBL extends GetView<ImportBLController> {
                                                             .ignored;
                                                       },
                                                   child: TextField(
+                                                    cursorColor: Colors.white,
                                                     // Gets the right controller using the helper method
                                                     controller:
-                                                        controller.slNoTECs[controller.selectedBLIndex.value],
+                                                        controller
+                                                            .slNoTECs[controller
+                                                            .selectedBLIndex
+                                                            .value],
                                                     textAlignVertical:
                                                         TextAlignVertical
                                                             .center,
@@ -714,15 +803,33 @@ class ImportBL extends GetView<ImportBLController> {
                                               decoration: BoxDecoration(
                                                 borderRadius:
                                                     BorderRadius.circular(15),
-                                                color: Colors.white.withAlpha(
+                                                color: controller
+                                                    .empties
+                                                    .value
+                                                    .where(
+                                                      (
+                                                      test,
+                                                      ) => test
+                                                      .values
+                                                      .contains(
+                                                    "Line No.-${controller.selectedBLIndex.value}",
+                                                  ),
+                                                )
+                                                    .isNotEmpty
+                                                    ? Colors.redAccent
+                                                    : Colors.white.withAlpha(
                                                   31,
                                                 ),
                                               ),
                                               child: Center(
                                                 child: TextField(
+                                                  cursorColor: Colors.white,
                                                   // Gets the right controller using the helper method
-                                                  controller: controller
-                                                      .blLineNoTECs[controller.selectedBLIndex.value],
+                                                  controller:
+                                                      controller
+                                                          .blLineNoTECs[controller
+                                                          .selectedBLIndex
+                                                          .value],
                                                   textAlignVertical:
                                                       TextAlignVertical.center,
                                                   style: const TextStyle(
@@ -771,15 +878,33 @@ class ImportBL extends GetView<ImportBLController> {
                                               decoration: BoxDecoration(
                                                 borderRadius:
                                                     BorderRadius.circular(15),
-                                                color: Colors.white.withAlpha(
+                                                color: controller
+                                                    .empties
+                                                    .value
+                                                    .where(
+                                                      (
+                                                      test,
+                                                      ) => test
+                                                      .values
+                                                      .contains(
+                                                    "Bl No.-${controller.selectedBLIndex.value}",
+                                                  ),
+                                                )
+                                                    .isNotEmpty
+                                                    ? Colors.redAccent
+                                                    : Colors.white.withAlpha(
                                                   31,
                                                 ),
                                               ),
                                               child: Center(
                                                 child: TextField(
+                                                  cursorColor: Colors.white,
                                                   // Gets the right controller using the helper method
                                                   controller:
-                                                      controller.blNoTECs[controller.selectedBLIndex.value],
+                                                      controller
+                                                          .blNoTECs[controller
+                                                          .selectedBLIndex
+                                                          .value],
                                                   textAlignVertical:
                                                       TextAlignVertical.center,
                                                   style: const TextStyle(
@@ -852,14 +977,33 @@ class ImportBL extends GetView<ImportBLController> {
                                                           BorderRadius.circular(
                                                             15,
                                                           ),
-                                                      color: Colors.white
+                                                      color: controller
+                                                          .empties
+                                                          .value
+                                                          .where(
+                                                            (
+                                                            test,
+                                                            ) => test
+                                                            .values
+                                                            .contains(
+                                                          "Fcl-${controller.selectedBLIndex.value}",
+                                                        ),
+                                                      )
+                                                          .isNotEmpty
+                                                          ? Colors.redAccent
+                                                          : Colors.white
                                                           .withAlpha(31),
                                                     ),
                                                     child: Center(
                                                       child: TextField(
+                                                        cursorColor:
+                                                            Colors.white,
                                                         // Gets the right controller using the helper method
-                                                        controller: controller
-                                                            .fclTECs[controller.selectedBLIndex.value],
+                                                        controller:
+                                                            controller
+                                                                .fclTECs[controller
+                                                                .selectedBLIndex
+                                                                .value],
                                                         textAlignVertical:
                                                             TextAlignVertical
                                                                 .center,
@@ -905,14 +1049,33 @@ class ImportBL extends GetView<ImportBLController> {
                                                           BorderRadius.circular(
                                                             15,
                                                           ),
-                                                      color: Colors.white
+                                                      color: controller
+                                                          .empties
+                                                          .value
+                                                          .where(
+                                                            (
+                                                            test,
+                                                            ) => test
+                                                            .values
+                                                            .contains(
+                                                          "Fcl/Qty-${controller.selectedBLIndex.value}",
+                                                        ),
+                                                      )
+                                                          .isNotEmpty
+                                                          ? Colors.redAccent
+                                                          : Colors.white
                                                           .withAlpha(31),
                                                     ),
                                                     child: Center(
                                                       child: TextField(
+                                                        cursorColor:
+                                                            Colors.white,
                                                         // Gets the right controller using the helper method
-                                                        controller: controller
-                                                            .fclQtyTECs[controller.selectedBLIndex.value],
+                                                        controller:
+                                                            controller
+                                                                .fclQtyTECs[controller
+                                                                .selectedBLIndex
+                                                                .value],
                                                         textAlignVertical:
                                                             TextAlignVertical
                                                                 .center,
@@ -979,14 +1142,32 @@ class ImportBL extends GetView<ImportBLController> {
                                                         BorderRadius.circular(
                                                           15,
                                                         ),
-                                                    color: Colors.white
+                                                    color: controller
+                                                        .empties
+                                                        .value
+                                                        .where(
+                                                          (
+                                                          test,
+                                                          ) => test
+                                                          .values
+                                                          .contains(
+                                                        "Lcl-${controller.selectedBLIndex.value}",
+                                                      ),
+                                                    )
+                                                        .isNotEmpty
+                                                        ? Colors.redAccent
+                                                        : Colors.white
                                                         .withAlpha(31),
                                                   ),
                                                   child: Center(
                                                     child: TextField(
+                                                      cursorColor: Colors.white,
                                                       // Gets the right controller using the helper method
                                                       controller:
-                                                          controller.lclTECs[controller.selectedBLIndex.value],
+                                                          controller
+                                                              .lclTECs[controller
+                                                              .selectedBLIndex
+                                                              .value],
                                                       textAlignVertical:
                                                           TextAlignVertical
                                                               .center,
@@ -1030,14 +1211,32 @@ class ImportBL extends GetView<ImportBLController> {
                                                         BorderRadius.circular(
                                                           15,
                                                         ),
-                                                    color: Colors.white
+                                                    color: controller
+                                                        .empties
+                                                        .value
+                                                        .where(
+                                                          (
+                                                          test,
+                                                          ) => test
+                                                          .values
+                                                          .contains(
+                                                        "Lcl/Consl.-${controller.selectedBLIndex.value}",
+                                                      ),
+                                                    )
+                                                        .isNotEmpty
+                                                        ? Colors.redAccent
+                                                        : Colors.white
                                                         .withAlpha(31),
                                                   ),
                                                   child: Center(
                                                     child: TextField(
+                                                      cursorColor: Colors.white,
                                                       // Gets the right controller using the helper method
-                                                      controller: controller
-                                                          .lclConsolidatedTECs[controller.selectedBLIndex.value],
+                                                      controller:
+                                                          controller
+                                                              .lclConsolidatedTECs[controller
+                                                              .selectedBLIndex
+                                                              .value],
                                                       textAlignVertical:
                                                           TextAlignVertical
                                                               .center,
@@ -1103,15 +1302,34 @@ class ImportBL extends GetView<ImportBLController> {
                                               decoration: BoxDecoration(
                                                 borderRadius:
                                                     BorderRadius.circular(15),
-                                                color: Colors.white.withAlpha(
+                                                color:
+                                                controller
+                                                    .empties
+                                                    .value
+                                                    .where(
+                                                      (
+                                                      test,
+                                                      ) => test
+                                                      .values
+                                                      .contains(
+                                                    "Consig. Code-${controller.selectedBLIndex.value}",
+                                                  ),
+                                                )
+                                                    .isNotEmpty
+                                                    ? Colors.redAccent
+                                                    : Colors.white.withAlpha(
                                                   31,
                                                 ),
                                               ),
                                               child: Center(
                                                 child: TextField(
+                                                  cursorColor: Colors.white,
                                                   // Gets the right controller using the helper method
-                                                  controller: controller
-                                                      .consigneeCodeTECs[controller.selectedBLIndex.value],
+                                                  controller:
+                                                      controller
+                                                          .consigneeCodeTECs[controller
+                                                          .selectedBLIndex
+                                                          .value],
                                                   textAlignVertical:
                                                       TextAlignVertical.center,
                                                   style: const TextStyle(
@@ -1162,15 +1380,34 @@ class ImportBL extends GetView<ImportBLController> {
                                               decoration: BoxDecoration(
                                                 borderRadius:
                                                     BorderRadius.circular(15),
-                                                color: Colors.white.withAlpha(
+                                                color:
+                                                controller
+                                                    .empties
+                                                    .value
+                                                    .where(
+                                                      (
+                                                      test,
+                                                      ) => test
+                                                      .values
+                                                      .contains(
+                                                    "Consignee-${controller.selectedBLIndex.value}",
+                                                  ),
+                                                )
+                                                    .isNotEmpty
+                                                    ? Colors.redAccent
+                                                    : Colors.white.withAlpha(
                                                   31,
                                                 ),
                                               ),
                                               child: Center(
                                                 child: TextField(
+                                                  cursorColor: Colors.white,
                                                   // Gets the right controller using the helper method
-                                                  controller: controller
-                                                      .consigneeTECs[controller.selectedBLIndex.value],
+                                                  controller:
+                                                      controller
+                                                          .consigneeTECs[controller
+                                                          .selectedBLIndex
+                                                          .value],
                                                   textAlignVertical:
                                                       TextAlignVertical.center,
                                                   style: const TextStyle(
@@ -1221,15 +1458,34 @@ class ImportBL extends GetView<ImportBLController> {
                                               decoration: BoxDecoration(
                                                 borderRadius:
                                                     BorderRadius.circular(15),
-                                                color: Colors.white.withAlpha(
+                                                color:
+                                                controller
+                                                    .empties
+                                                    .value
+                                                    .where(
+                                                      (
+                                                      test,
+                                                      ) => test
+                                                      .values
+                                                      .contains(
+                                                    "Con. Address-${controller.selectedBLIndex.value}",
+                                                  ),
+                                                )
+                                                    .isNotEmpty
+                                                    ? Colors.redAccent
+                                                    : Colors.white.withAlpha(
                                                   31,
                                                 ),
                                               ),
                                               child: Center(
                                                 child: TextField(
+                                                  cursorColor: Colors.white,
                                                   // Gets the right controller using the helper method
-                                                  controller: controller
-                                                      .consigneeAddressTECs[controller.selectedBLIndex.value],
+                                                  controller:
+                                                      controller
+                                                          .consigneeAddressTECs[controller
+                                                          .selectedBLIndex
+                                                          .value],
                                                   textAlignVertical:
                                                       TextAlignVertical.center,
                                                   style: const TextStyle(
@@ -1280,15 +1536,34 @@ class ImportBL extends GetView<ImportBLController> {
                                               decoration: BoxDecoration(
                                                 borderRadius:
                                                     BorderRadius.circular(15),
-                                                color: Colors.white.withAlpha(
+                                                color:
+                                                controller
+                                                    .empties
+                                                    .value
+                                                    .where(
+                                                      (
+                                                      test,
+                                                      ) => test
+                                                      .values
+                                                      .contains(
+                                                    "Exporter-${controller.selectedBLIndex.value}",
+                                                  ),
+                                                )
+                                                    .isNotEmpty
+                                                    ? Colors.redAccent
+                                                    : Colors.white.withAlpha(
                                                   31,
                                                 ),
                                               ),
                                               child: Center(
                                                 child: TextField(
+                                                  cursorColor: Colors.white,
                                                   // Gets the right controller using the helper method
-                                                  controller: controller
-                                                      .exporterTECs[controller.selectedBLIndex.value],
+                                                  controller:
+                                                      controller
+                                                          .exporterTECs[controller
+                                                          .selectedBLIndex
+                                                          .value],
                                                   textAlignVertical:
                                                       TextAlignVertical.center,
                                                   style: const TextStyle(
@@ -1351,13 +1626,32 @@ class ImportBL extends GetView<ImportBLController> {
                                             borderRadius: BorderRadius.circular(
                                               15,
                                             ),
-                                            color: Colors.white.withAlpha(31),
+                                            color:
+                                            controller
+                                                .empties
+                                                .value
+                                                .where(
+                                                  (
+                                                  test,
+                                                  ) => test
+                                                  .values
+                                                  .contains(
+                                                "BL Remarks-${controller.selectedBLIndex.value}",
+                                              ),
+                                            )
+                                                .isNotEmpty
+                                                ? Colors.redAccent
+                                                : Colors.white.withAlpha(31),
                                           ),
                                           child: Center(
                                             child: TextField(
+                                              cursorColor: Colors.white,
                                               // Gets the right controller using the helper method
                                               controller:
-                                                  controller.blRemarksTECs[controller.selectedBLIndex.value],
+                                                  controller
+                                                      .blRemarksTECs[controller
+                                                      .selectedBLIndex
+                                                      .value],
                                               textAlignVertical:
                                                   TextAlignVertical.center,
                                               style: const TextStyle(
@@ -1415,15 +1709,34 @@ class ImportBL extends GetView<ImportBLController> {
                                               decoration: BoxDecoration(
                                                 borderRadius:
                                                     BorderRadius.circular(15),
-                                                color: Colors.white.withAlpha(
+                                                color:
+                                                controller
+                                                    .empties
+                                                    .value
+                                                    .where(
+                                                      (
+                                                      test,
+                                                      ) => test
+                                                      .values
+                                                      .contains(
+                                                    "Notify Code-${controller.selectedBLIndex.value}",
+                                                  ),
+                                                )
+                                                    .isNotEmpty
+                                                    ? Colors.redAccent
+                                                    : Colors.white.withAlpha(
                                                   31,
                                                 ),
                                               ),
                                               child: Center(
                                                 child: TextField(
+                                                  cursorColor: Colors.white,
                                                   // Gets the right controller using the helper method
-                                                  controller: controller
-                                                      .notifyCodeTECs[controller.selectedBLIndex.value],
+                                                  controller:
+                                                      controller
+                                                          .notifyCodeTECs[controller
+                                                          .selectedBLIndex
+                                                          .value],
                                                   textAlignVertical:
                                                       TextAlignVertical.center,
                                                   style: const TextStyle(
@@ -1474,15 +1787,34 @@ class ImportBL extends GetView<ImportBLController> {
                                               decoration: BoxDecoration(
                                                 borderRadius:
                                                     BorderRadius.circular(15),
-                                                color: Colors.white.withAlpha(
+                                                color:
+                                                controller
+                                                    .empties
+                                                    .value
+                                                    .where(
+                                                      (
+                                                      test,
+                                                      ) => test
+                                                      .values
+                                                      .contains(
+                                                    "Notify Party-${controller.selectedBLIndex.value}",
+                                                  ),
+                                                )
+                                                    .isNotEmpty
+                                                    ? Colors.redAccent
+                                                    : Colors.white.withAlpha(
                                                   31,
                                                 ),
                                               ),
                                               child: Center(
                                                 child: TextField(
+                                                  cursorColor: Colors.white,
                                                   // Gets the right controller using the helper method
-                                                  controller: controller
-                                                      .notifyPartyTECs[controller.selectedBLIndex.value],
+                                                  controller:
+                                                      controller
+                                                          .notifyPartyTECs[controller
+                                                          .selectedBLIndex
+                                                          .value],
                                                   textAlignVertical:
                                                       TextAlignVertical.center,
                                                   style: const TextStyle(
@@ -1533,15 +1865,34 @@ class ImportBL extends GetView<ImportBLController> {
                                               decoration: BoxDecoration(
                                                 borderRadius:
                                                     BorderRadius.circular(15),
-                                                color: Colors.white.withAlpha(
+                                                color:
+                                                controller
+                                                    .empties
+                                                    .value
+                                                    .where(
+                                                      (
+                                                      test,
+                                                      ) => test
+                                                      .values
+                                                      .contains(
+                                                    "Notify Address-${controller.selectedBLIndex.value}",
+                                                  ),
+                                                )
+                                                    .isNotEmpty
+                                                    ? Colors.redAccent
+                                                    : Colors.white.withAlpha(
                                                   31,
                                                 ),
                                               ),
                                               child: Center(
                                                 child: TextField(
+                                                  cursorColor: Colors.white,
                                                   // Gets the right controller using the helper method
-                                                  controller: controller
-                                                      .notifyAddressTECs[controller.selectedBLIndex.value],
+                                                  controller:
+                                                      controller
+                                                          .notifyAddressTECs[controller
+                                                          .selectedBLIndex
+                                                          .value],
                                                   textAlignVertical:
                                                       TextAlignVertical.center,
                                                   style: const TextStyle(
@@ -1592,15 +1943,34 @@ class ImportBL extends GetView<ImportBLController> {
                                               decoration: BoxDecoration(
                                                 borderRadius:
                                                     BorderRadius.circular(15),
-                                                color: Colors.white.withAlpha(
+                                                color:
+                                                controller
+                                                    .empties
+                                                    .value
+                                                    .where(
+                                                      (
+                                                      test,
+                                                      ) => test
+                                                      .values
+                                                      .contains(
+                                                    "Exporter Add.-${controller.selectedBLIndex.value}",
+                                                  ),
+                                                )
+                                                    .isNotEmpty
+                                                    ? Colors.redAccent
+                                                    : Colors.white.withAlpha(
                                                   31,
                                                 ),
                                               ),
                                               child: Center(
                                                 child: TextField(
+                                                  cursorColor: Colors.white,
                                                   // Gets the right controller using the helper method
-                                                  controller: controller
-                                                      .exporterAddressTECs[controller.selectedBLIndex.value],
+                                                  controller:
+                                                      controller
+                                                          .exporterAddressTECs[controller
+                                                          .selectedBLIndex
+                                                          .value],
                                                   textAlignVertical:
                                                       TextAlignVertical.center,
                                                   style: const TextStyle(
@@ -1662,15 +2032,34 @@ class ImportBL extends GetView<ImportBLController> {
                                               decoration: BoxDecoration(
                                                 borderRadius:
                                                     BorderRadius.circular(15),
-                                                color: Colors.white.withAlpha(
+                                                color:
+                                                controller
+                                                    .empties
+                                                    .value
+                                                    .where(
+                                                      (
+                                                      test,
+                                                      ) => test
+                                                      .values
+                                                      .contains(
+                                                    "Place Unload-${controller.selectedBLIndex.value}",
+                                                  ),
+                                                )
+                                                    .isNotEmpty
+                                                    ? Colors.redAccent
+                                                    : Colors.white.withAlpha(
                                                   31,
                                                 ),
                                               ),
                                               child: Center(
                                                 child: TextField(
+                                                  cursorColor: Colors.white,
                                                   // Gets the right controller using the helper method
-                                                  controller: controller
-                                                      .placeOfUnloadTECs[controller.selectedBLIndex.value],
+                                                  controller:
+                                                      controller
+                                                          .placeOfUnloadTECs[controller
+                                                          .selectedBLIndex
+                                                          .value],
                                                   textAlignVertical:
                                                       TextAlignVertical.center,
                                                   style: const TextStyle(
@@ -1721,15 +2110,34 @@ class ImportBL extends GetView<ImportBLController> {
                                               decoration: BoxDecoration(
                                                 borderRadius:
                                                     BorderRadius.circular(15),
-                                                color: Colors.white.withAlpha(
+                                                color:
+                                                controller
+                                                    .empties
+                                                    .value
+                                                    .where(
+                                                      (
+                                                      test,
+                                                      ) => test
+                                                      .values
+                                                      .contains(
+                                                    "Bl Nature-${controller.selectedBLIndex.value}",
+                                                  ),
+                                                )
+                                                    .isNotEmpty
+                                                    ? Colors.redAccent
+                                                    : Colors.white.withAlpha(
                                                   31,
                                                 ),
                                               ),
                                               child: Center(
                                                 child: TextField(
+                                                  cursorColor: Colors.white,
                                                   // Gets the right controller using the helper method
-                                                  controller: controller
-                                                      .blNatureTECs[controller.selectedBLIndex.value],
+                                                  controller:
+                                                      controller
+                                                          .blNatureTECs[controller
+                                                          .selectedBLIndex
+                                                          .value],
                                                   textAlignVertical:
                                                       TextAlignVertical.center,
                                                   style: const TextStyle(
@@ -1809,13 +2217,17 @@ class ImportBL extends GetView<ImportBLController> {
                                                   children: [
                                                     Text(
                                                       controller
-                                                              .blTypeCodeTECs[controller.selectedBLIndex.value]
+                                                              .blTypeCodeTECs[controller
+                                                                  .selectedBLIndex
+                                                                  .value]
                                                               .value
                                                               .text
                                                               .isEmpty
                                                           ? "MSB"
                                                           : controller
-                                                                .blTypeCodeTECs[controller.selectedBLIndex.value]
+                                                                .blTypeCodeTECs[controller
+                                                                    .selectedBLIndex
+                                                                    .value]
                                                                 .value
                                                                 .text,
                                                       style: const TextStyle(
@@ -1869,15 +2281,34 @@ class ImportBL extends GetView<ImportBLController> {
                                               decoration: BoxDecoration(
                                                 borderRadius:
                                                     BorderRadius.circular(15),
-                                                color: Colors.white.withAlpha(
+                                                color:
+                                                controller
+                                                    .empties
+                                                    .value
+                                                    .where(
+                                                      (
+                                                      test,
+                                                      ) => test
+                                                      .values
+                                                      .contains(
+                                                    "Load Port Dt.-${controller.selectedBLIndex.value}",
+                                                  ),
+                                                )
+                                                    .isNotEmpty
+                                                    ? Colors.redAccent
+                                                    : Colors.white.withAlpha(
                                                   31,
                                                 ),
                                               ),
                                               child: Center(
                                                 child: TextField(
+                                                  cursorColor: Colors.white,
                                                   // Gets the right controller using the helper method
-                                                  controller: controller
-                                                      .blLoadPortDtTECs[controller.selectedBLIndex.value],
+                                                  controller:
+                                                      controller
+                                                          .blLoadPortDtTECs[controller
+                                                          .selectedBLIndex
+                                                          .value],
                                                   textAlignVertical:
                                                       TextAlignVertical.center,
                                                   style: const TextStyle(
@@ -1940,13 +2371,32 @@ class ImportBL extends GetView<ImportBLController> {
                                             borderRadius: BorderRadius.circular(
                                               15,
                                             ),
-                                            color: Colors.white.withAlpha(31),
+                                            color:
+                                            controller
+                                                .empties
+                                                .value
+                                                .where(
+                                                  (
+                                                  test,
+                                                  ) => test
+                                                  .values
+                                                  .contains(
+                                                "Marks-${controller.selectedBLIndex.value}",
+                                              ),
+                                            )
+                                                .isNotEmpty
+                                                ? Colors.redAccent
+                                                : Colors.white.withAlpha(31),
                                           ),
                                           child: Center(
                                             child: TextField(
+                                              cursorColor: Colors.white,
                                               // Gets the right controller using the helper method
                                               controller:
-                                                  controller.marksTECs[controller.selectedBLIndex.value],
+                                                  controller
+                                                      .marksTECs[controller
+                                                      .selectedBLIndex
+                                                      .value],
                                               textAlignVertical:
                                                   TextAlignVertical.center,
                                               style: const TextStyle(
@@ -2099,11 +2549,28 @@ class ImportBL extends GetView<ImportBLController> {
                                                           BorderRadius.circular(
                                                             25,
                                                           ),
-                                                      color: Colors.white
+                                                      color:
+                                                      controller
+                                                          .empties
+                                                          .value
+                                                          .where(
+                                                            (
+                                                            test,
+                                                            ) => test
+                                                            .values
+                                                            .contains(
+                                                          "Quantity-${controller.selectedBLIndex.value}",
+                                                        ),
+                                                      )
+                                                          .isNotEmpty
+                                                          ? Colors.redAccent
+                                                          : Colors.white
                                                           .withAlpha(31),
                                                     ),
                                                     child: Center(
                                                       child: TextField(
+                                                        cursorColor:
+                                                            Colors.white,
                                                         // Gets the right controller using the helper method
                                                         // controller: controller.getControllerForCell(heading, rowIndex),
                                                         textAlignVertical:
@@ -2151,11 +2618,28 @@ class ImportBL extends GetView<ImportBLController> {
                                                           BorderRadius.circular(
                                                             15,
                                                           ),
-                                                      color: Colors.white
+                                                      color:
+                                                      controller
+                                                          .empties
+                                                          .value
+                                                          .where(
+                                                            (
+                                                            test,
+                                                            ) => test
+                                                            .values
+                                                            .contains(
+                                                          "Quantity2-${controller.selectedBLIndex.value}",
+                                                        ),
+                                                      )
+                                                          .isNotEmpty
+                                                          ? Colors.redAccent
+                                                          : Colors.white
                                                           .withAlpha(31),
                                                     ),
                                                     child: Center(
                                                       child: TextField(
+                                                        cursorColor:
+                                                            Colors.white,
                                                         // Gets the right controller using the helper method
                                                         // controller: controller.getControllerForCell(heading, rowIndex),
                                                         textAlignVertical:
@@ -2230,13 +2714,30 @@ class ImportBL extends GetView<ImportBLController> {
                                                           BorderRadius.circular(
                                                             25,
                                                           ),
-                                                      color: Colors.white
+                                                      color:
+                                                      controller
+                                                          .empties
+                                                          .value
+                                                          .where(
+                                                            (
+                                                            test,
+                                                            ) => test
+                                                            .values
+                                                            .contains(
+                                                          "Commodity-${controller.selectedBLIndex.value}",
+                                                        ),
+                                                      )
+                                                          .isNotEmpty
+                                                          ? Colors.redAccent
+                                                          : Colors.white
                                                           .withAlpha(31),
                                                     ),
                                                     child: Center(
                                                       child: TextField(
+                                                        cursorColor:
+                                                            Colors.white,
                                                         // Gets the right controller using the helper method
-                                                        // controller: controller.getControllerForCell(heading, rowIndex),
+                                                        controller: controller.commodityTECs[controller.selectedBLIndex.value],
                                                         textAlignVertical:
                                                             TextAlignVertical
                                                                 .center,
@@ -2393,404 +2894,564 @@ class ImportBL extends GetView<ImportBLController> {
                         ),
                         SizedBox(
                           width: sizes.width * .89,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.max,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            spacing: 17,
-                            children: [
-                              Container(
-                                height: sizes.appBarHeight * .85,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(17),
-                                  color: Colors.white,
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    "      New Record      ",
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.w700,
-                                      height: 0,
+                          child: Center(
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.max,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                spacing: 17,
+                                children: [
+                                  Container(
+                                    height: sizes.appBarHeight * .85,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(17),
+                                      color: Colors.white,
                                     ),
-                                  ),
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  //eee
-                                  var years = getDataOffOfTECs(
-                                    controller.yearTECs,
-                                  );
-                                  var feederVesselNames = getDataOffOfTECs(
-                                    controller.feederVesselNameTECs,
-                                  );
-                                  var fevRotationNos = getDataOffOfTECs(
-                                    controller.fevRotationNoTECs,
-                                  );
-                                  var fvVoys = getDataOffOfTECs(
-                                    controller.fvVoyTECs,
-                                  );
-                                  var netMTs = getDataOffOfTECs(
-                                    controller.netMTTECs,
-                                  );
-                                  var departureDates = getDataOffOfTECs(
-                                    controller.departureDateTECs,
-                                  );
-                                  var depCodes = getDataOffOfTECs(
-                                    controller.depCodeTECs,
-                                  );
-                                  var flagNames = getDataOffOfTECs(
-                                    controller.flagNameTECs,
-                                  );
-                                  var arrivalDates = getDataOffOfTECs(
-                                    controller.arrivalDateTECs,
-                                  );
-                                  var berthingDates = getDataOffOfTECs(
-                                    controller.berthingDateTECs,
-                                  );
-                                  var portOfShipments = getDataOffOfTECs(
-                                    controller.portOfShipmentTECs,
-                                  );
-                                  var flags = getDataOffOfTECs(
-                                    controller.flagTECs,
-                                  );
-                                  var lineNos = getDataOffOf2DTECs(
-                                    controller.lineNoTECs,
-                                  );
-                                  var contPrefixes = getDataOffOf2DTECs(
-                                    controller.contPrefixTECs,
-                                  );
-                                  var contNos = getDataOffOf2DTECs(
-                                    controller.contNoTECs,
-                                  );
-                                  var sizes = getDataOffOf2DTECs(
-                                    controller.sizeTECs,
-                                  );
-                                  var contTypes = getDataOffOf2DTECs(
-                                    controller.contTypeTECs,
-                                  );
-                                  var isoCodes = getDataOffOf2DTECs(
-                                    controller.isoCodeTECs,
-                                  );
-                                  var qtys = getDataOffOf2DTECs(
-                                    controller.qtyTECs,
-                                  );
-                                  var uoms = getDataOffOf2DTECs(
-                                    controller.uomTECs,
-                                  );
-                                  var weightKgms = getDataOffOf2DTECs(
-                                    controller.weightKgmTECs,
-                                  );
-                                  var contVolumes = getDataOffOf2DTECs(
-                                    controller.contVolumeTECs,
-                                  );
-                                  var vgmQtys = getDataOffOf2DTECs(
-                                    controller.vgmQtyTECs,
-                                  );
-                                  var cbms = getDataOffOf2DTECs(
-                                    controller.cbmTECs,
-                                  );
-                                  var sealNos = getDataOffOf2DTECs(
-                                    controller.sealNoTECs,
-                                  );
-                                  var imcos = getDataOffOf2DTECs(
-                                    controller.imcoTECs,
-                                  );
-                                  var uns = getDataOffOf2DTECs(
-                                    controller.unTECs,
-                                  );
-                                  var statuses = getDataOffOf2DTECs(
-                                    controller.statusTECs,
-                                  );
-                                  var loadPortDts = getDataOffOf2DTECs(
-                                    controller.loadPortDtTECs,
-                                  );
-                                  var remarks = getDataOffOf2DTECs(
-                                    controller.remarksTECs,
-                                  );
-                                  var parts = getDataOffOf2DTECs(
-                                    controller.partTECs,
-                                  );
-                                  var offDocks = getDataOffOf2DTECs(
-                                    controller.offDockTECs,
-                                  );
-                                  var commoCodes = getDataOffOf2DTECs(
-                                    controller.commoCodeTECs,
-                                  );
-                                  var perishables = getDataOffOf2DTECs(
-                                    controller.perishableTECs,
-                                  );
-                                  var portOfLanding = getDataOffOfTECs(
-                                    controller.portOfLandingTECs,
-                                  );
-                                  var slNo = getDataOffOfTECs(
-                                    controller.slNoTECs,
-                                  );
-                                  var blLineNo = getDataOffOfTECs(
-                                    controller.blLineNoTECs,
-                                  );
-                                  var blNo = getDataOffOfTECs(
-                                    controller.blNoTECs,
-                                  );
-                                  var fcl = getDataOffOfTECs(
-                                    controller.fclTECs,
-                                  );
-                                  var fclQty = getDataOffOfTECs(
-                                    controller.fclQtyTECs,
-                                  );
-                                  var lcl = getDataOffOfTECs(
-                                    controller.lclTECs,
-                                  );
-                                  var lclConsolidated = getDataOffOfTECs(
-                                    controller.lclConsolidatedTECs,
-                                  );
-                                  var consigneeCode = getDataOffOfTECs(
-                                    controller.consigneeCodeTECs,
-                                  );
-                                  var consignee = getDataOffOfTECs(
-                                    controller.consigneeTECs,
-                                  );
-                                  var consigneeAddress = getDataOffOfTECs(
-                                    controller.consigneeAddressTECs,
-                                  );
-                                  var exporter = getDataOffOfTECs(
-                                    controller.exporterTECs,
-                                  );
-                                  var blRemarks = getDataOffOfTECs(
-                                    controller.blRemarksTECs,
-                                  );
-                                  var notifyCode = getDataOffOfTECs(
-                                    controller.notifyCodeTECs,
-                                  );
-                                  var notifyParty = getDataOffOfTECs(
-                                    controller.notifyPartyTECs,
-                                  );
-                                  var notifyAddress = getDataOffOfTECs(
-                                    controller.notifyAddressTECs,
-                                  );
-                                  var exporterAddress = getDataOffOfTECs(
-                                    controller.exporterAddressTECs,
-                                  );
-                                  var placeOfUnload = getDataOffOfTECs(
-                                    controller.placeOfUnloadTECs,
-                                  );
-                                  var blNature = getDataOffOfTECs(
-                                    controller.blNatureTECs,
-                                  );
-                                  var blTypeCode = getDataOffOfTECs(
-                                    controller.blTypeCodeTECs,
-                                  );
-                                  var blLoadPortDt = getDataOffOfTECs(
-                                    controller.blLoadPortDtTECs,
-                                  );
-                                  var marks = getDataOffOfTECs(
-                                    controller.marksTECs,
-                                  );
-                                  var quantity = getDataOffOfTECs(
-                                    controller.quantityTECs,
-                                  );
-                                  var quantity2 = getDataOffOfTECs(
-                                    controller.quantity2TECs,
-                                  );
-                                  var commodity = getDataOffOfTECs(
-                                    controller.commodityTECs,
-                                  );
-                                  var dgStatus = getDataOffOfTECs(
-                                    controller.dgStatusTECs,
-                                  );
-
-                                  ImportBLXMLGeneration importBLXMLGeneration =
-                                      ImportBLXMLGeneration(
-                                        years: years,
-                                        feederVesselNames: feederVesselNames,
-                                        fevRotationNos: fevRotationNos,
-                                        fvVoys: fvVoys,
-                                        netMTs: netMTs,
-                                        departureDates: departureDates,
-                                        depCodes: depCodes,
-                                        flagNames: flagNames,
-                                        arrivalDates: arrivalDates,
-                                        berthingDates: berthingDates,
-                                        portOfShipments: portOfShipments,
-                                        flags: flags,
-                                        lineNos: lineNos,
-                                        contPrefixes: contPrefixes,
-                                        contNos: contNos,
-                                        sizes: sizes,
-                                        contTypes: contTypes,
-                                        isoCodes: isoCodes,
-                                        qtys: qtys,
-                                        uoms: uoms,
-                                        weightKgms: weightKgms,
-                                        contVolumes: contVolumes,
-                                        vgmQtys: vgmQtys,
-                                        cbms: cbms,
-                                        sealNos: sealNos,
-                                        imcos: imcos,
-                                        uns: uns,
-                                        statuses: statuses,
-                                        loadPortDts: loadPortDts,
-                                        remarks: remarks,
-                                        parts: parts,
-                                        offDocks: offDocks,
-                                        commoCodes: commoCodes,
-                                        perishables: perishables,
-                                        portOfLanding: portOfLanding,
-                                        slNo: slNo,
-                                        blLineNo: blLineNo,
-                                        blNo: blNo,
-                                        fcl: fcl,
-                                        fclQty: fclQty,
-                                        lcl: lcl,
-                                        lclConsolidated: lclConsolidated,
-                                        consigneeCode: consigneeCode,
-                                        consignee: consignee,
-                                        consigneeAddress: consigneeAddress,
-                                        exporter: exporter,
-                                        blRemarks: blRemarks,
-                                        notifyCode: notifyCode,
-                                        notifyParty: notifyParty,
-                                        notifyAddress: notifyAddress,
-                                        exporterAddress: exporterAddress,
-                                        placeOfUnload: placeOfUnload,
-                                        blNature: blNature,
-                                        blTypeCode: blTypeCode,
-                                        blLoadPortDt: blLoadPortDt,
-                                        marks: marks,
-                                        quantity: quantity,
-                                        quantity2: quantity2,
-                                        commodity: commodity,
-                                        dgStatus: dgStatus,
-                                      );
-                                  print(dgStatus);
-                                  importBLXMLGeneration.generateXML();
-                                  // ImportBLXMLGeneration(years: controller.yearTECs.iterator.current.text, feederVesselNames, fevRotationNos, fvVoys, netMTs, departureDates, depCodes, flagNames, arrivalDates, berthingDates, portOfShipments, flags, lineNos, contPrefixes, contNos, sizes, contTypes, isoCodes, qtys, uoms, weightKgms, contVolumes, vgmQtys, cbms, sealNos, imcos, uns, statuses, loadPortDts, remarks, parts, offDocks, commoCodes, perishables, portOfLanding, slNo, blLineNo, blNo, fcl, fclQty, lcl, lclConsolidated, consigneeCode, consignee, consigneeAddress, exporter, blRemarks, notifyCode, notifyParty, notifyAddress, exporterAddress, placeOfUnload, blNature, blTypeCode, blLoadPortDt, marks, quantity, quantity2, commodity, dgStatus)
-                                },
-                                child: Container(
-                                  height: sizes.appBarHeight * .85,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(17),
-                                    color: Colors.white,
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      "      Save      ",
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontWeight: FontWeight.w700,
-                                        height: 0,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                height: sizes.appBarHeight * .85,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(17),
-                                  color: Colors.white,
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    "      Print      ",
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.w700,
-                                      height: 0,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                height: sizes.appBarHeight * .85,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(17),
-                                  color: Colors.white,
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    "      Bank Info      ",
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.w700,
-                                      height: 0,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                height: sizes.appBarHeight * .85,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(17),
-                                  color: Colors.white,
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    "      Exit      ",
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.w700,
-                                      height: 0,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              LiquidGlass(
-                                clipBehavior: Clip.antiAlias,
-                                shape: const LiquidRoundedSuperellipse(
-                                  borderRadius: Radius.circular(35),
-                                ),
-                                settings: LiquidGlassSettings(
-                                  thickness: 20,
-                                  glassColor: const Color(0x09FFFFFF),
-                                  lightIntensity: 3,
-                                  blend: 40,
-                                  ambientStrength: .35,
-                                  lightAngle: math.pi / 7,
-                                  chromaticAberration: 0,
-                                  refractiveIndex: 1.1,
-                                ),
-                                child: Container(
-                                  // height: sizes.appBarHeight * 1.5,
-                                  width:
-                                      sizes.calculateTextWidth(
-                                        "Bank address for notice to consignee",
-                                        TextStyle(
-                                          fontWeight: FontWeight.w700,
-                                          color: Colors.white,
-                                        ),
-                                      ) *
-                                      1.35,
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 31,
-                                    vertical: 31,
-                                  ),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    spacing: 11,
-                                    children: [
-                                      Text(
-                                        "Bank address for notice to consignee",
-                                        textAlign: TextAlign.center,
+                                    child: Center(
+                                      child: Text(
+                                        "      New Record      ",
                                         style: TextStyle(
+                                          color: Colors.black,
                                           fontWeight: FontWeight.w700,
-                                          color: Colors.white,
+                                          height: 0,
                                         ),
                                       ),
-                                      Container(
-                                        height: sizes.appBarHeight * .85,
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withAlpha(31),
-                                          borderRadius: BorderRadius.circular(
-                                            17,
+                                    ),
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      //eee
+                                      var years = getDataOffOfTECs(
+                                        controller.yearTECs,
+                                      );
+                                      var feederVesselNames = getDataOffOfTECs(
+                                        controller.feederVesselNameTECs,
+                                      );
+                                      var fevRotationNos = getDataOffOfTECs(
+                                        controller.fevRotationNoTECs,
+                                      );
+                                      var fvVoys = getDataOffOfTECs(
+                                        controller.fvVoyTECs,
+                                      );
+                                      var netMTs = getDataOffOfTECs(
+                                        controller.netMTTECs,
+                                      );
+                                      var departureDates = getDataOffOfTECs(
+                                        controller.departureDateTECs,
+                                      );
+                                      var depCodes = getDataOffOfTECs(
+                                        controller.depCodeTECs,
+                                      );
+                                      var flagNames = getDataOffOfTECs(
+                                        controller.flagNameTECs,
+                                      );
+                                      var arrivalDates = getDataOffOfTECs(
+                                        controller.arrivalDateTECs,
+                                      );
+                                      var berthingDates = getDataOffOfTECs(
+                                        controller.berthingDateTECs,
+                                      );
+                                      var portOfShipments = getDataOffOfTECs(
+                                        controller.portOfShipmentTECs,
+                                      );
+                                      var flags = getDataOffOfTECs(
+                                        controller.flagTECs,
+                                      );
+                                      var lineNos = getDataOffOf2DTECs(
+                                        controller.lineNoTECs,
+                                      );
+                                      var contPrefixes = getDataOffOf2DTECs(
+                                        controller.contPrefixTECs,
+                                      );
+                                      var contNos = getDataOffOf2DTECs(
+                                        controller.contNoTECs,
+                                      );
+                                      var sizes = getDataOffOf2DTECs(
+                                        controller.sizeTECs,
+                                      );
+                                      var contTypes = getDataOffOf2DTECs(
+                                        controller.contTypeTECs,
+                                      );
+                                      var isoCodes = getDataOffOf2DTECs(
+                                        controller.isoCodeTECs,
+                                      );
+                                      var qtys = getDataOffOf2DTECs(
+                                        controller.qtyTECs,
+                                      );
+                                      var uoms = getDataOffOf2DTECs(
+                                        controller.uomTECs,
+                                      );
+                                      var weightKgms = getDataOffOf2DTECs(
+                                        controller.weightKgmTECs,
+                                      );
+                                      var contVolumes = getDataOffOf2DTECs(
+                                        controller.contVolumeTECs,
+                                      );
+                                      var vgmQtys = getDataOffOf2DTECs(
+                                        controller.vgmQtyTECs,
+                                      );
+                                      var cbms = getDataOffOf2DTECs(
+                                        controller.cbmTECs,
+                                      );
+                                      var sealNos = getDataOffOf2DTECs(
+                                        controller.sealNoTECs,
+                                      );
+                                      var imcos = getDataOffOf2DTECs(
+                                        controller.imcoTECs,
+                                      );
+                                      var uns = getDataOffOf2DTECs(
+                                        controller.unTECs,
+                                      );
+                                      var statuses = getDataOffOf2DTECs(
+                                        controller.statusTECs,
+                                      );
+                                      var loadPortDts = getDataOffOf2DTECs(
+                                        controller.loadPortDtTECs,
+                                      );
+                                      var remarks = getDataOffOf2DTECs(
+                                        controller.remarksTECs,
+                                      );
+                                      var parts = getDataOffOf2DTECs(
+                                        controller.partTECs,
+                                      );
+                                      var offDocks = getDataOffOf2DTECs(
+                                        controller.offDockTECs,
+                                      );
+                                      var commoCodes = getDataOffOf2DTECs(
+                                        controller.commoCodeTECs,
+                                      );
+                                      var perishables = getDataOffOf2DTECs(
+                                        controller.perishableTECs,
+                                      );
+                                      var portOfLanding = getDataOffOfTECs(
+                                        controller.portOfLandingTECs,
+                                      );
+                                      var slNo = getDataOffOfTECs(
+                                        controller.slNoTECs,
+                                      );
+                                      var blLineNo = getDataOffOfTECs(
+                                        controller.blLineNoTECs,
+                                      );
+                                      var blNo = getDataOffOfTECs(
+                                        controller.blNoTECs,
+                                      );
+                                      var fcl = getDataOffOfTECs(
+                                        controller.fclTECs,
+                                      );
+                                      var fclQty = getDataOffOfTECs(
+                                        controller.fclQtyTECs,
+                                      );
+                                      var lcl = getDataOffOfTECs(
+                                        controller.lclTECs,
+                                      );
+                                      var lclConsolidated = getDataOffOfTECs(
+                                        controller.lclConsolidatedTECs,
+                                      );
+                                      var consigneeCode = getDataOffOfTECs(
+                                        controller.consigneeCodeTECs,
+                                      );
+                                      var consignee = getDataOffOfTECs(
+                                        controller.consigneeTECs,
+                                      );
+                                      var consigneeAddress = getDataOffOfTECs(
+                                        controller.consigneeAddressTECs,
+                                      );
+                                      var exporter = getDataOffOfTECs(
+                                        controller.exporterTECs,
+                                      );
+                                      var blRemarks = getDataOffOfTECs(
+                                        controller.blRemarksTECs,
+                                      );
+                                      var notifyCode = getDataOffOfTECs(
+                                        controller.notifyCodeTECs,
+                                      );
+                                      var notifyParty = getDataOffOfTECs(
+                                        controller.notifyPartyTECs,
+                                      );
+                                      var notifyAddress = getDataOffOfTECs(
+                                        controller.notifyAddressTECs,
+                                      );
+                                      var exporterAddress = getDataOffOfTECs(
+                                        controller.exporterAddressTECs,
+                                      );
+                                      var placeOfUnload = getDataOffOfTECs(
+                                        controller.placeOfUnloadTECs,
+                                      );
+                                      var blNature = getDataOffOfTECs(
+                                        controller.blNatureTECs,
+                                      );
+                                      var blTypeCode = getDataOffOfTECs(
+                                        controller.blTypeCodeTECs,
+                                      );
+                                      var blLoadPortDt = getDataOffOfTECs(
+                                        controller.blLoadPortDtTECs,
+                                      );
+                                      var marks = getDataOffOfTECs(
+                                        controller.marksTECs,
+                                      );
+                                      var quantity = getDataOffOfTECs(
+                                        controller.quantityTECs,
+                                      );
+                                      var quantity2 = getDataOffOfTECs(
+                                        controller.quantity2TECs,
+                                      );
+                                      var commodity = getDataOffOfTECs(
+                                        controller.commodityTECs,
+                                      );
+                                      var dgStatus = getDataOffOfTECs(
+                                        controller.dgStatusTECs,
+                                      );
+                                      var sl_Nos = getDataOffOfTECs(
+                                        controller.sl_NoTECs,
+                                      );
+                                      var bankAddressForNotice = getDataOffOfTECs(
+                                        controller.bankAddressForNoticeToConsigneeTECs,
+                                      );
+
+                                      controller.empties.clear();
+
+                                      controller.assignEmpties("Year", years);
+                                      controller.assignEmpties(
+                                        "Feeder Vessel Name",
+                                        feederVesselNames,
+                                      );
+                                      controller.assignEmpties(
+                                        "Fe.V Rotation No.",
+                                        fevRotationNos,
+                                      );
+                                      controller.assignEmpties(
+                                        "F.V. Voy",
+                                        fvVoys,
+                                      );
+                                      controller.assignEmpties("Net MT", netMTs);
+                                      controller.assignEmpties(
+                                        "Departure Date",
+                                        departureDates,
+                                      );
+                                      controller.assignEmpties(
+                                        "Dep. Code",
+                                        depCodes,
+                                      );
+                                      controller.assignEmpties(
+                                        "Flag Name",
+                                        flagNames,
+                                      );
+                                      controller.assignEmpties(
+                                        "Arrival Date",
+                                        arrivalDates,
+                                      );
+                                      controller.assignEmpties(
+                                        "Berthing Date",
+                                        berthingDates,
+                                      );
+                                      controller.assignEmpties(
+                                        "Port of Shipment",
+                                        portOfShipments,
+                                      );
+                                      controller.assignEmpties(
+                                        "Sl No.",
+                                        slNo,
+                                      );
+                                      controller.assignEmpties("Flag", flags);
+                                      controller.assignEmpties("SL_NO", sl_Nos);
+                                      controller.assignEmpties("Line No.", blLineNo);
+                                      controller.assignEmpties("Bl No.", blNo);
+                                      controller.assignEmpties("Fcl", fcl);
+                                      controller.assignEmpties("Fcl/Qty", fclQty);
+                                      controller.assignEmpties("Lcl", lcl);
+                                      controller.assignEmpties("Lcl/Consl.", lclConsolidated);
+                                      controller.assignEmpties("Consig. Code", consigneeCode);
+                                      controller.assignEmpties("Consignee", consignee);
+                                      controller.assignEmpties("Con. Address", consigneeAddress);
+                                      controller.assignEmpties("Exporter", exporter);
+                                      controller.assignEmpties("BL Remarks", blRemarks);
+                                      controller.assignEmpties("Notify Code", notifyCode);
+                                      controller.assignEmpties("Notify Party", notifyParty);
+                                      controller.assignEmpties("Notify Address", notifyAddress);
+                                      controller.assignEmpties("Exporter Add.", exporterAddress);
+                                      controller.assignEmpties("Place Unload", placeOfUnload);
+                                      controller.assignEmpties("Bl Nature", blNature);
+                                      controller.assignEmpties("Bl Type Code", blTypeCode);
+                                      controller.assignEmpties("Load Port Dt.", blLoadPortDt);
+                                      controller.assignEmpties("Marks", marks);
+                                      controller.assignEmpties("Quantity", quantity);
+                                      controller.assignEmpties("Quantity2", quantity2);
+                                      controller.assignEmpties("Commodity", commodity);
+                                      controller.assignEmpties("Dg", dgStatus);
+                                      controller.assignEmpties("Bank address for notice to consignee", bankAddressForNotice);
+
+                                      for(int i = 0; i < blNo.length; i++) {
+                                        controller.assignEmpties("Line No.${controller.selectedBLIndex.value}", lineNos[i]);
+                                        controller.assignEmpties("Cont. Prefix${controller.selectedBLIndex.value}", contPrefixes[i]);
+                                        controller.assignEmpties("Cont. No.${controller.selectedBLIndex.value}", contNos[i]);
+                                        controller.assignEmpties("Size${controller.selectedBLIndex.value}", sizes[i]);
+                                        controller.assignEmpties("Cont. Type${controller.selectedBLIndex.value}", contTypes[i]);
+                                        controller.assignEmpties("ISO Code${controller.selectedBLIndex.value}", isoCodes[i]);
+                                        controller.assignEmpties("Qty${controller.selectedBLIndex.value}", qtys[i]);
+                                        controller.assignEmpties("Uom${controller.selectedBLIndex.value}", uoms[i]);
+                                        controller.assignEmpties("Weight (KGM)${controller.selectedBLIndex.value}", weightKgms[i]);
+                                        controller.assignEmpties("Cont. Volume${controller.selectedBLIndex.value}", contVolumes[i]);
+                                        controller.assignEmpties("VGM Qty${controller.selectedBLIndex.value}", vgmQtys[i]);
+                                        controller.assignEmpties("CBM${controller.selectedBLIndex.value}", cbms[i]);
+                                        controller.assignEmpties("Seal No.${controller.selectedBLIndex.value}", sealNos[i]);
+                                        controller.assignEmpties("IMCO${controller.selectedBLIndex.value}", imcos[i]);
+                                        controller.assignEmpties("Un${controller.selectedBLIndex.value}", uns[i]);
+                                        controller.assignEmpties("Status${controller.selectedBLIndex.value}", statuses[i]);
+                                        controller.assignEmpties("Load Port Dt${controller.selectedBLIndex.value}", loadPortDts[i]);
+                                        controller.assignEmpties("Remarks${controller.selectedBLIndex.value}", remarks[i]);
+                                        controller.assignEmpties("Part${controller.selectedBLIndex.value}", parts[i]);
+                                        controller.assignEmpties("Line No.${controller.selectedBLIndex.value}", lineNos[i]);
+                                        controller.assignEmpties("Off Dock${controller.selectedBLIndex.value}", offDocks[i]);
+                                        controller.assignEmpties("Commo. Code${controller.selectedBLIndex.value}", commoCodes[i]);
+                                        controller.assignEmpties("Perishable${controller.selectedBLIndex.value}", perishables[i]);
+                                      }
+
+                                      if (controller
+                                          .emptyFieldEncountered
+                                          .value) {
+                                        return;
+                                      }
+
+                                      //eee
+
+                                      ImportBLXMLGeneration
+                                      importBLXMLGeneration =
+                                          ImportBLXMLGeneration(
+                                            years: years,
+                                            feederVesselNames: feederVesselNames,
+                                            fevRotationNos: fevRotationNos,
+                                            fvVoys: fvVoys,
+                                            netMTs: netMTs,
+                                            departureDates: departureDates,
+                                            depCodes: depCodes,
+                                            flagNames: flagNames,
+                                            arrivalDates: arrivalDates,
+                                            berthingDates: berthingDates,
+                                            portOfShipments: portOfShipments,
+                                            flags: flags,
+                                            lineNos: lineNos,
+                                            contPrefixes: contPrefixes,
+                                            contNos: contNos,
+                                            sizes: sizes,
+                                            contTypes: contTypes,
+                                            isoCodes: isoCodes,
+                                            qtys: qtys,
+                                            uoms: uoms,
+                                            weightKgms: weightKgms,
+                                            contVolumes: contVolumes,
+                                            vgmQtys: vgmQtys,
+                                            cbms: cbms,
+                                            sealNos: sealNos,
+                                            imcos: imcos,
+                                            uns: uns,
+                                            statuses: statuses,
+                                            loadPortDts: loadPortDts,
+                                            remarks: remarks,
+                                            parts: parts,
+                                            offDocks: offDocks,
+                                            commoCodes: commoCodes,
+                                            perishables: perishables,
+                                            portOfLanding: portOfLanding,
+                                            slNo: slNo,
+                                            blLineNo: blLineNo,
+                                            blNo: blNo,
+                                            fcl: fcl,
+                                            fclQty: fclQty,
+                                            lcl: lcl,
+                                            lclConsolidated: lclConsolidated,
+                                            consigneeCode: consigneeCode,
+                                            consignee: consignee,
+                                            consigneeAddress: consigneeAddress,
+                                            exporter: exporter,
+                                            blRemarks: blRemarks,
+                                            notifyCode: notifyCode,
+                                            notifyParty: notifyParty,
+                                            notifyAddress: notifyAddress,
+                                            exporterAddress: exporterAddress,
+                                            placeOfUnload: placeOfUnload,
+                                            blNature: blNature,
+                                            blTypeCode: blTypeCode,
+                                            blLoadPortDt: blLoadPortDt,
+                                            marks: marks,
+                                            quantity: quantity,
+                                            quantity2: quantity2,
+                                            commodity: commodity,
+                                            dgStatus: dgStatus,
+                                          );
+                                      print(dgStatus);
+
+                                      if (controller.blLineNoTECs.length == 1) {
+                                        importBLXMLGeneration.generateXML();
+                                      }
+
+                                      if (controller.blLineNoTECs.length > 1) {
+                                        importBLXMLGeneration.generateMultiBL();
+                                      }
+                                    },
+                                    child: Container(
+                                      height: sizes.appBarHeight * .85,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(17),
+                                        color: Colors.white,
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          "      Save      ",
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                            fontWeight: FontWeight.w700,
+                                            height: 0,
                                           ),
                                         ),
                                       ),
-                                    ],
+                                    ),
                                   ),
-                                ),
+                                  Container(
+                                    height: sizes.appBarHeight * .85,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(17),
+                                      color: Colors.white,
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        "      Print      ",
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.w700,
+                                          height: 0,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Container(
+                                    height: sizes.appBarHeight * .85,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(17),
+                                      color: Colors.white,
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        "      Bank Info      ",
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.w700,
+                                          height: 0,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Container(
+                                    height: sizes.appBarHeight * .85,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(17),
+                                      color: Colors.white,
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        "      Exit      ",
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.w700,
+                                          height: 0,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  LiquidGlass(
+                                    clipBehavior: Clip.antiAlias,
+                                    shape: const LiquidRoundedSuperellipse(
+                                      borderRadius: Radius.circular(35),
+                                    ),
+                                    settings: LiquidGlassSettings(
+                                      thickness: 20,
+                                      glassColor: const Color(0x09FFFFFF),
+                                      lightIntensity: 3,
+                                      blend: 40,
+                                      ambientStrength: .35,
+                                      lightAngle: math.pi / 7,
+                                      chromaticAberration: 0,
+                                      refractiveIndex: 1.1,
+                                    ),
+                                    child: Container(
+                                      // height: sizes.appBarHeight * 1.5,
+                                      width:
+                                          sizes.calculateTextWidth(
+                                            "Bank address for notice to consignee",
+                                            TextStyle(
+                                              fontWeight: FontWeight.w700,
+                                              color: Colors.white,
+                                            ),
+                                          ) *
+                                          1.35,
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 31,
+                                        vertical: 31,
+                                      ),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        spacing: 11,
+                                        children: [
+                                          Text(
+                                            "Bank address for notice to consignee",
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w700,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          Container(
+                                            height: sizes.appBarHeight * .85,
+                                            decoration: BoxDecoration(
+                                              color:
+                                              controller
+                                                  .empties
+                                                  .value
+                                                  .where(
+                                                    (
+                                                    test,
+                                                    ) => test
+                                                    .values
+                                                    .contains(
+                                                  "Bank address for notice to consignee-0",
+                                                ),
+                                              )
+                                                  .isNotEmpty
+                                                  ? Colors.redAccent
+                                                  : Colors.white.withAlpha(31),
+                                              borderRadius: BorderRadius.circular(
+                                                17,
+                                              ),
+                                            ),
+                                            child: TextField(
+                                              cursorColor:
+                                              Colors.white,
+                                              // Gets the right controller using the helper method
+                                              controller: controller.bankAddressForNoticeToConsigneeTECs[0],
+                                              textAlignVertical:
+                                              TextAlignVertical
+                                                  .center,
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontWeight:
+                                                FontWeight.w700,
+                                              ),
+                                              decoration:
+                                              const InputDecoration(
+                                                border:
+                                                InputBorder
+                                                    .none,
+                                                isDense: true,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
                         ),
                         Text(
@@ -2981,7 +3642,22 @@ class ImportBL extends GetView<ImportBLController> {
                                                                 BorderRadius.circular(
                                                                   15,
                                                                 ),
-                                                            color: Colors.white
+                                                            color:
+                                                            controller
+                                                                .empties
+                                                                .value
+                                                                .where(
+                                                                  (
+                                                                  test,
+                                                                  ) => test
+                                                                  .values
+                                                                  .contains(
+                                                                "$heading${controller.selectedBLIndex.value}-$rowIndex",
+                                                              ),
+                                                            )
+                                                                .isNotEmpty
+                                                                ? Colors.redAccent
+                                                                : Colors.white
                                                                 .withAlpha(31),
                                                           ),
                                                           child:
@@ -3068,9 +3744,7 @@ class ImportBL extends GetView<ImportBLController> {
                                                                           .spaceBetween,
                                                                   children: [
                                                                     Text(
-                                                                      controller.statusTECs[controller.selectedBLIndex.value][rowIndex]
-                                                                                  .value
-                                                                                  .text ==
+                                                                      controller.statusTECs[controller.selectedBLIndex.value][rowIndex].value.text ==
                                                                               ""
                                                                           ? "FCL"
                                                                           : controller
@@ -3096,13 +3770,17 @@ class ImportBL extends GetView<ImportBLController> {
                                                                 )
                                                               : Center(
                                                                   child: TextField(
+                                                                    cursorColor:
+                                                                        Colors
+                                                                            .white,
                                                                     // Gets the right controller using the helper method
-                                                                    controller: controller
-                                                                        .getContainerControllerForCell(
-                                                                          heading,
-                                                                          controller.selectedBLIndex.value,
-                                                                          rowIndex,
-                                                                        ),
+                                                                    controller: controller.getContainerControllerForCell(
+                                                                      heading,
+                                                                      controller
+                                                                          .selectedBLIndex
+                                                                          .value,
+                                                                      rowIndex,
+                                                                    ),
                                                                     textAlignVertical:
                                                                         TextAlignVertical
                                                                             .center,
@@ -3143,8 +3821,18 @@ class ImportBL extends GetView<ImportBLController> {
                                                   : () => {
                                                       print("+++"),
                                                       controller
-                                                          .addRowToSpecificIndexInContainerTable(controller.selectedBLIndex.value),
-                                                    print(controller.lineNoTECs[controller.selectedBLIndex.value].length)
+                                                          .addRowToSpecificIndexInContainerTable(
+                                                            controller
+                                                                .selectedBLIndex
+                                                                .value,
+                                                          ),
+                                                      print(
+                                                        controller
+                                                            .lineNoTECs[controller
+                                                                .selectedBLIndex
+                                                                .value]
+                                                            .length,
+                                                      ),
                                                     },
                                               child: Padding(
                                                 padding:
@@ -3297,22 +3985,36 @@ class ImportBL extends GetView<ImportBLController> {
                         GestureDetector(
                           onTap: () {
                             if (controller.bottomSheetTag1.value == "CTG") {
-                              controller.portOfLandingTECs[controller.selectedBLIndex.value].text =
+                              controller
+                                      .portOfLandingTECs[controller
+                                          .selectedBLIndex
+                                          .value]
+                                      .text =
                                   controller.bottomSheetTag1.value;
                               // controller.portOfShipment.value =
                               //     controller.bottomSheetTag1.value;
                             }
                             if (controller.bottomSheetTag1.value == "MSB") {
-                              controller.blTypeCodeTECs[controller.selectedBLIndex.value].text =
+                              controller
+                                      .blTypeCodeTECs[controller
+                                          .selectedBLIndex
+                                          .value]
+                                      .text =
                                   controller.bottomSheetTag1.value;
                             }
                             if (controller.bottomSheetTag1.value == "Yes") {
-                              controller.dgStatusTECs[controller.selectedBLIndex.value].text =
+                              controller
+                                      .dgStatusTECs[controller
+                                          .selectedBLIndex
+                                          .value]
+                                      .text =
                                   controller.bottomSheetTag1.value;
                             }
                             if (controller.bottomSheetTag1.value == "FCL") {
                               controller
-                                      .statusTECs[controller.selectedBLIndex.value][controller
+                                      .statusTECs[controller
+                                          .selectedBLIndex
+                                          .value][controller
                                           .selectedStatusIndex
                                           .value]
                                       .text =
@@ -3320,7 +4022,9 @@ class ImportBL extends GetView<ImportBLController> {
                             }
                             if (controller.bottomSheetTag1.value == "Good") {
                               controller
-                                      .remarksTECs[controller.selectedBLIndex.value][controller
+                                      .remarksTECs[controller
+                                          .selectedBLIndex
+                                          .value][controller
                                           .selectedRemarksIndex
                                           .value]
                                       .text =
@@ -3329,7 +4033,9 @@ class ImportBL extends GetView<ImportBLController> {
                             if (controller.selectedHeading.value ==
                                 "Perishable") {
                               controller
-                                      .perishableTECs[controller.selectedBLIndex.value][controller
+                                      .perishableTECs[controller
+                                          .selectedBLIndex
+                                          .value][controller
                                           .selectedPerishableIndex
                                           .value]
                                       .text =
@@ -3351,22 +4057,36 @@ class ImportBL extends GetView<ImportBLController> {
                         GestureDetector(
                           onTap: () {
                             if (controller.bottomSheetTag1.value == "CTG") {
-                              controller.portOfLandingTECs[controller.selectedBLIndex.value].text =
+                              controller
+                                      .portOfLandingTECs[controller
+                                          .selectedBLIndex
+                                          .value]
+                                      .text =
                                   controller.bottomSheetTag2.value;
                               // controller.portOfShipment.value =
                               //     controller.bottomSheetTag2.value;
                             }
                             if (controller.bottomSheetTag1.value == "MSB") {
-                              controller.blTypeCodeTECs[controller.selectedBLIndex.value].text =
+                              controller
+                                      .blTypeCodeTECs[controller
+                                          .selectedBLIndex
+                                          .value]
+                                      .text =
                                   controller.bottomSheetTag2.value;
                             }
                             if (controller.bottomSheetTag1.value == "Yes") {
-                              controller.dgStatusTECs[controller.selectedBLIndex.value].text =
+                              controller
+                                      .dgStatusTECs[controller
+                                          .selectedBLIndex
+                                          .value]
+                                      .text =
                                   controller.bottomSheetTag2.value;
                             }
                             if (controller.bottomSheetTag1.value == "FCL") {
                               controller
-                                      .statusTECs[controller.selectedBLIndex.value][controller
+                                      .statusTECs[controller
+                                          .selectedBLIndex
+                                          .value][controller
                                           .selectedStatusIndex
                                           .value]
                                       .text =
@@ -3374,7 +4094,9 @@ class ImportBL extends GetView<ImportBLController> {
                             }
                             if (controller.bottomSheetTag1.value == "Good") {
                               controller
-                                      .remarksTECs[controller.selectedBLIndex.value][controller
+                                      .remarksTECs[controller
+                                          .selectedBLIndex
+                                          .value][controller
                                           .selectedRemarksIndex
                                           .value]
                                       .text =
@@ -3383,7 +4105,9 @@ class ImportBL extends GetView<ImportBLController> {
                             if (controller.selectedHeading.value ==
                                 "Perishable") {
                               controller
-                                      .perishableTECs[controller.selectedBLIndex.value][controller
+                                      .perishableTECs[controller
+                                          .selectedBLIndex
+                                          .value][controller
                                           .selectedPerishableIndex
                                           .value]
                                       .text =

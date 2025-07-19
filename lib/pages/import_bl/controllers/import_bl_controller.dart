@@ -13,7 +13,22 @@ class ImportBLController extends GetxController {
   RxInt selectedRemarksIndex = 0.obs;
   RxInt selectedPerishableIndex = 0.obs;
   RxInt selectedBLIndex = 0.obs;
+  RxBool emptyFieldEncountered = false.obs;
+  RxList<Map<String, String>> empties = [
+    {"": ""},
+  ].obs;
   final FocusNode _focusNode = FocusNode();
+
+  assignEmpties(String heading, List<RxString> tecs) {
+    print("object");
+    for(int i = 0; i < tecs.length; i++) {
+      if(tecs[i].value.isEmpty) {
+        print("$heading-${i.toString()}");
+        empties.add({"key" : "$heading-${i.toString()}"});
+        emptyFieldEncountered.value = true;
+      }
+    }
+  }
 
   final List<String> vesselTableHeadings = [
     "Year",
@@ -70,6 +85,8 @@ class ImportBLController extends GetxController {
   var portOfShipmentTECs = <TextEditingController>[].obs;
   var flagTECs = <TextEditingController>[].obs;
 
+  var sl_NoTECs = <TextEditingController>[].obs;
+
   var lineNoTECs = <List<TextEditingController>>[].obs;
   var contPrefixTECs = <List<TextEditingController>>[].obs;
   var contNoTECs = <List<TextEditingController>>[].obs;
@@ -121,12 +138,13 @@ class ImportBLController extends GetxController {
   var dgStatusTECs = <TextEditingController>[].obs;
 
   var bankAddressForNoticeToConsigneeTECs = <TextEditingController>[].obs;
-  var sl_NoTECs = <TextEditingController>[].obs;
+  // var sl_NoTECs = <TextEditingController>[].obs;
 
   // Helper to easily get the row count
   int get rowCount => yearTECs.length;
 
-  int get rowCountForContainer => loadPortDtTECs.isEmpty ? 0 : loadPortDtTECs[selectedBLIndex.value].length;
+  int get rowCountForContainer =>
+      loadPortDtTECs.isEmpty ? 0 : loadPortDtTECs[selectedBLIndex.value].length;
 
   // This helper maps a heading string to the correct list of controllers.
   // This keeps the view file clean.
@@ -163,7 +181,7 @@ class ImportBLController extends GetxController {
 
   List<TextEditingController> _getContainerControllerListByHeading(
     String heading,
-      int blIndex
+    int blIndex,
   ) {
     switch (heading) {
       case "Line No.":
@@ -237,12 +255,22 @@ class ImportBLController extends GetxController {
     return _getContainerControllerListByHeading(heading, blIndex)[rowIndex];
   }
 
+  addTECsToSl_No() {
+    sl_NoTECs.add(TextEditingController());
+  }
+
+  addTECsToBankAddressForNotice() {
+    bankAddressForNoticeToConsigneeTECs.add(TextEditingController());
+  }
+
   @override
   void onInit() {
     super.onInit();
     addRow(); // Start with one row
     addRowToContainerTable();
     addBlTableTECs();
+    addTECsToSl_No();
+    addTECsToBankAddressForNotice();
   }
 
   void addRow() {
@@ -318,7 +346,6 @@ class ImportBLController extends GetxController {
   }
 
   void addBlTableTECs() {
-
     portOfLandingTECs.add(TextEditingController());
     slNoTECs.add(TextEditingController());
     blLineNoTECs.add(TextEditingController());
@@ -349,7 +376,6 @@ class ImportBLController extends GetxController {
     // dgStatusTECs[0].text = "No";
     // portOfLandingTECs[0].text = "CTG";
     // blTypeCodeTECs[0].text = "MSB";
-
   }
 
   get focusNode => _focusNode;
