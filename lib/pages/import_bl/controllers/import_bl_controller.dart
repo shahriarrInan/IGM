@@ -316,6 +316,11 @@ class ImportBLController extends GetxController {
     offDockTECs.add([TextEditingController()].obs);
     commoCodeTECs.add([TextEditingController()].obs);
     perishableTECs.add([TextEditingController()].obs);
+
+    perishableTECs[0][0].text = "No";
+    remarksTECs[0][0].text = "Good";
+    statusTECs[0][0].text = "FCL";
+
   }
 
   void addRowToSpecificIndexInContainerTable(int index) {
@@ -343,6 +348,10 @@ class ImportBLController extends GetxController {
     offDockTECs[index].add(TextEditingController());
     commoCodeTECs[index].add(TextEditingController());
     perishableTECs[index].add(TextEditingController());
+
+    perishableTECs[index][perishableTECs[index].length - 1].text = "No";
+    remarksTECs[index][remarksTECs[index].length - 1].text = "Good";
+    statusTECs[index][statusTECs[index].length - 1].text = "FCL";
   }
 
   void addBlTableTECs() {
@@ -373,9 +382,9 @@ class ImportBLController extends GetxController {
     commodityTECs.add(TextEditingController());
     dgStatusTECs.add(TextEditingController());
 
-    // dgStatusTECs[0].text = "No";
-    // portOfLandingTECs[0].text = "CTG";
-    // blTypeCodeTECs[0].text = "MSB";
+    dgStatusTECs[dgStatusTECs.length - 1].text = "No";
+    portOfLandingTECs[portOfLandingTECs.length - 1].text = "CTG";
+    blTypeCodeTECs[blTypeCodeTECs.length - 1].text = "MSB";
   }
 
   get focusNode => _focusNode;

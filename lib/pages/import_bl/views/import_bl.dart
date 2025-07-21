@@ -588,7 +588,22 @@ class ImportBL extends GetView<ImportBLController> {
                                                 decoration: BoxDecoration(
                                                   borderRadius:
                                                       BorderRadius.circular(15),
-                                                  color: Colors.white.withAlpha(
+                                                  color:
+                                                  controller
+                                                      .empties
+                                                      .value
+                                                      .where(
+                                                        (
+                                                        test,
+                                                        ) => test
+                                                        .values
+                                                        .contains(
+                                                      "CTG/ICD-${controller.selectedBLIndex.value}",
+                                                    ),
+                                                  )
+                                                      .isNotEmpty
+                                                      ? Colors.redAccent
+                                                      : Colors.white.withAlpha(
                                                     31,
                                                   ),
                                                 ),
@@ -2205,7 +2220,22 @@ class ImportBL extends GetView<ImportBLController> {
                                                 decoration: BoxDecoration(
                                                   borderRadius:
                                                       BorderRadius.circular(15),
-                                                  color: Colors.white.withAlpha(
+                                                  color:
+                                                  controller
+                                                      .empties
+                                                      .value
+                                                      .where(
+                                                        (
+                                                        test,
+                                                        ) => test
+                                                        .values
+                                                        .contains(
+                                                      "Bl Type Code-${controller.selectedBLIndex.value}",
+                                                    ),
+                                                  )
+                                                      .isNotEmpty
+                                                      ? Colors.redAccent
+                                                      : Colors.white.withAlpha(
                                                     31,
                                                   ),
                                                 ),
@@ -2816,7 +2846,22 @@ class ImportBL extends GetView<ImportBLController> {
                                                                     BorderRadius.circular(
                                                                       15,
                                                                     ),
-                                                                color: Colors
+                                                                color:
+                                                                controller
+                                                                    .empties
+                                                                    .value
+                                                                    .where(
+                                                                      (
+                                                                      test,
+                                                                      ) => test
+                                                                      .values
+                                                                      .contains(
+                                                                    "Dg-${controller.selectedBLIndex.value}",
+                                                                  ),
+                                                                )
+                                                                    .isNotEmpty
+                                                                    ? Colors.redAccent
+                                                                    : Colors
                                                                     .white
                                                                     .withAlpha(
                                                                       31,
@@ -3102,7 +3147,7 @@ class ImportBL extends GetView<ImportBLController> {
                                       var dgStatus = getDataOffOfTECs(
                                         controller.dgStatusTECs,
                                       );
-                                      var sl_Nos = getDataOffOfTECs(
+                                      var slNos = getDataOffOfTECs(
                                         controller.sl_NoTECs,
                                       );
                                       var bankAddressForNotice = getDataOffOfTECs(
@@ -3153,8 +3198,9 @@ class ImportBL extends GetView<ImportBLController> {
                                         "Sl No.",
                                         slNo,
                                       );
+                                      controller.assignEmpties("CTG/ICD", portOfLanding);
                                       controller.assignEmpties("Flag", flags);
-                                      controller.assignEmpties("SL_NO", sl_Nos);
+                                      controller.assignEmpties("SL_NO", slNos);
                                       controller.assignEmpties("Line No.", blLineNo);
                                       controller.assignEmpties("Bl No.", blNo);
                                       controller.assignEmpties("Fcl", fcl);
