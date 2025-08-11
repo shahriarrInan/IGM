@@ -7,7 +7,7 @@ class ImportBLController extends GetxController {
   RxString bottomSheetTag2 = "".obs;
   RxString portOfShipment = "CTG".obs;
   RxString blTypeCode = "MSB".obs;
-  RxString dgStatus = "No".obs;
+  RxString dgStatus = "NO".obs;
   RxString selectedHeading = "".obs;
   RxInt selectedStatusIndex = 0.obs;
   RxInt selectedRemarksIndex = 0.obs;
@@ -292,7 +292,7 @@ class ImportBLController extends GetxController {
   }
 
   void addRowToContainerTable() {
-    if (rowCountForContainer >= 5) return;
+    // if (rowCountForContainer >= 5) return;
 
     lineNoTECs.add([TextEditingController()].obs);
     contPrefixTECs.add([TextEditingController()].obs);
@@ -317,14 +317,14 @@ class ImportBLController extends GetxController {
     commoCodeTECs.add([TextEditingController()].obs);
     perishableTECs.add([TextEditingController()].obs);
 
-    perishableTECs[0][0].text = "No";
+    perishableTECs[0][0].text = "NO";
     remarksTECs[0][0].text = "Good";
     statusTECs[0][0].text = "FCL";
 
   }
 
   void addRowToSpecificIndexInContainerTable(int index) {
-    if (rowCountForContainer >= 5) return;
+    // if (rowCountForContainer >= 5) return;
 
     lineNoTECs[index].add(TextEditingController());
     contPrefixTECs[index].add(TextEditingController());
@@ -349,7 +349,7 @@ class ImportBLController extends GetxController {
     commoCodeTECs[index].add(TextEditingController());
     perishableTECs[index].add(TextEditingController());
 
-    perishableTECs[index][perishableTECs[index].length - 1].text = "No";
+    perishableTECs[index][perishableTECs[index].length - 1].text = "NO";
     remarksTECs[index][remarksTECs[index].length - 1].text = "Good";
     statusTECs[index][statusTECs[index].length - 1].text = "FCL";
   }
@@ -382,7 +382,15 @@ class ImportBLController extends GetxController {
     commodityTECs.add(TextEditingController());
     dgStatusTECs.add(TextEditingController());
 
-    dgStatusTECs[dgStatusTECs.length - 1].text = "No";
+    blNatureTECs.last.text = "23";
+    if(slNoTECs.length == 1) {
+      slNoTECs.first.text = "1";
+    }
+    else {
+      slNoTECs.last.text = (int.parse(slNoTECs[slNoTECs.length - 2].text) + 1).toString();
+    }
+
+    dgStatusTECs[dgStatusTECs.length - 1].text = "NO";
     portOfLandingTECs[portOfLandingTECs.length - 1].text = "CTG";
     blTypeCodeTECs[blTypeCodeTECs.length - 1].text = "MSB";
   }

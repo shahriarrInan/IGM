@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:igm/pages/import_bl/controllers/import_bl_controller.dart';
 import 'package:igm/processors/xml_processor/import_bl_xml_generation.dart';
+import 'package:intl/intl.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import 'package:refreshed/refreshed.dart';
 import 'package:flutter/material.dart';
@@ -27,9 +28,7 @@ class ImportBL extends GetView<ImportBLController> {
       return tecVals;
     }
 
-    List<List<RxString>> getDataOffOf2DTECs(
-      List<List<TextEditingController>> tecs,
-    ) {
+    List<List<RxString>> getDataOffOf2DTECs(List<List<TextEditingController>> tecs,) {
       List<List<RxString>> tecVals = [];
 
       for (var rowOfControllers in tecs) {
@@ -51,7 +50,15 @@ class ImportBL extends GetView<ImportBLController> {
       (index) => DataColumn(
         label: Container(
           height: sizes.appBarHeight,
-          width:
+          width: controller.vesselTableHeadings[index] == "Flag" ?
+              sizes.calculateTextWidth(
+                controller.vesselTableHeadings[index],
+                const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                ),
+              ) *
+              4 :
               sizes.calculateTextWidth(
                 controller.vesselTableHeadings[index],
                 const TextStyle(
@@ -81,7 +88,15 @@ class ImportBL extends GetView<ImportBLController> {
       (index) => DataColumn(
         label: Container(
           height: sizes.appBarHeight,
-          width:
+          width: controller.containerTableHeadings[index] == "Un" ?
+              sizes.calculateTextWidth(
+                controller.containerTableHeadings[index],
+                const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                ),
+              ) *
+              5 :
               sizes.calculateTextWidth(
                 controller.containerTableHeadings[index],
                 const TextStyle(
@@ -105,6 +120,60 @@ class ImportBL extends GetView<ImportBLController> {
         ),
       ),
     );
+    
+    Sizes s = Sizes(context: context);
+
+    late ImportBLXMLGeneration
+    importBLXMLGeneration;
+
+    generateXML() {
+      importBLXMLGeneration.generateXML();
+
+      // if (controller.blLineNoTECs.length == 1) {
+      //   importBLXMLGeneration.generateXML();
+      // }
+      //
+      // if (controller.blLineNoTECs.length > 1) {
+      //   importBLXMLGeneration.generateMultiBL();
+      // }
+    }
+
+    void _showAlert(BuildContext context) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            // The title of the dialog
+            title: const Text('Field(s) empty!'),
+            // The content of the dialog
+            content: const Text('One or more fields are empty.'),
+            // The actions (buttons) at the bottom of the dialog
+            actions: <Widget>[
+              // The "No" button
+              TextButton(
+                child: const Text('Cancel'),
+                onPressed: () {
+                  // Close the dialog when "No" is pressed
+                  Navigator.of(context).pop();
+                  debugPrint("'No' was tapped.");
+                },
+              ),
+              // The "Yes" button
+              TextButton(
+                child: const Text('Continue'),
+                onPressed: () {
+                  // Perform your action here
+                  // Then, close the dialog
+                  Navigator.of(context).pop();
+                  debugPrint("'Yes' was tapped.");
+                  generateXML();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
 
     return Obx(
       () => Scaffold(
@@ -222,8 +291,18 @@ class ImportBL extends GetView<ImportBLController> {
                                                   ) {
                                                     return DataCell(
                                                       Container(
-                                                        width:
+                                                        width: heading == "Flag" ?
                                                             sizes.calculateTextWidth(
+                                                              heading,
+                                                              const TextStyle(
+                                                                color: Colors
+                                                                    .white,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w700,
+                                                              ),
+                                                            ) *
+                                                            4 : sizes.calculateTextWidth(
                                                               heading,
                                                               const TextStyle(
                                                                 color: Colors
@@ -267,9 +346,63 @@ class ImportBL extends GetView<ImportBLController> {
                                                                     ),
                                                         ),
                                                         child: Center(
-                                                          child: TextField(
+                                                          child: heading == "Flag" ?
+                                                          Autocomplete<String>(
+                                                            // This function returns the filtered list of suggestions.
+                                                            optionsBuilder: (TextEditingValue textEditingValue) {
+                                                              // If the field is empty, don't show any suggestions.
+                                                              if (textEditingValue.text.isEmpty) {
+                                                                return ["BD", "IN", "PK"];
+                                                              }
+                                                              // Filter our master list.
+                                                              return ["BD", "IN", "PK"].where((String option) {
+                                                                return option.toLowerCase().startsWith(
+                                                                  textEditingValue.text.toLowerCase(),
+                                                                );
+                                                              });
+                                                            },
+
+                                                            // This function is called when a suggestion is selected.
+                                                            onSelected: (String selection) {
+                                                              controller
+                                                                  .getControllerForCell(
+                                                                heading,
+                                                                rowIndex,
+                                                              ).text = selection;
+                                                                  debugPrint('You just selected "$selection"');
+                                                            },
+                                                            fieldViewBuilder: (context, controller, focusNode, onSubmitted) {
+                                                              return TextField(
+                                                                controller: controller,
+                                                                focusNode: focusNode,
+                                                                cursorColor: Colors.white,
+                                                                onEditingComplete: onSubmitted,
+                                                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+                                                                decoration: InputDecoration(
+                                                                  enabledBorder: const UnderlineInputBorder(
+                                                                    borderSide: BorderSide(color: Colors.transparent),
+                                                                  ),
+                                                                  focusedBorder: const UnderlineInputBorder(
+                                                                    borderSide: BorderSide.none,
+                                                                  ),
+                                                                ),
+                                                              );
+                                                            },
+                                                          ) :
+                                                          TextField(
+                                                            onTap: !heading.contains( "Date" )? () {}
+                                                            :
+                                                            () async {
+                                                              var date = await showDatePicker(firstDate: DateTime.now(), lastDate: DateTime(3000), context: context,);
+                                                              controller
+                                                                  .getControllerForCell(
+                                                                heading,
+                                                                rowIndex,
+                                                              ).text = DateFormat('yyyy-MM-dd').format(date!);
+                                                            },
                                                             cursorColor:
                                                                 Colors.white,
+                                                            // enabled: heading != "Departure Date",
                                                             // Gets the right controller using the helper method
                                                             controller: controller
                                                                 .getControllerForCell(
@@ -370,131 +503,134 @@ class ImportBL extends GetView<ImportBLController> {
                             ),
                           ),
                         ),
-                        SizedBox(
-                          width: sizes.width * .89,
-                          child: Center(
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                mainAxisSize: MainAxisSize.max,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                spacing: 17,
-                                children: [
-                                  LiquidGlass(
-                                    clipBehavior: Clip.antiAlias,
-                                    shape: const LiquidRoundedSuperellipse(
-                                      borderRadius: Radius.circular(35),
-                                    ),
-                                    settings: LiquidGlassSettings(
-                                      thickness: 20,
-                                      glassColor: const Color(0x09FFFFFF),
-                                      lightIntensity: 3,
-                                      blend: 40,
-                                      ambientStrength: .35,
-                                      lightAngle: math.pi / 7,
-                                      chromaticAberration: 0,
-                                      refractiveIndex: 1.1,
-                                    ),
-                                    child: Container(
-                                      height: sizes.appBarHeight * 1.5,
-                                      width: 400,
-                                      padding: EdgeInsets.symmetric(horizontal: 31),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        spacing: 11,
-                                        children: [
-                                          Text(
-                                            "SL_NO",
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.w700,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                          Expanded(
-                                            child: Container(
-                                              height: sizes.appBarHeight * .85,
-                                              padding: EdgeInsets.symmetric(
-                                                horizontal: 11,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color: controller
-                                                    .empties
-                                                    .value
-                                                    .where(
-                                                      (
-                                                      test,
-                                                      ) => test
-                                                      .values
-                                                      .contains(
-                                                    "SL_NO-0",
-                                                  ),
-                                                )
-                                                    .isNotEmpty
-                                                    ? Colors.redAccent
-                                                    : Colors.white.withAlpha(31),
-                                                borderRadius: BorderRadius.circular(
-                                                  17,
-                                                ),
-                                              ),
-                                              child: Center(
-                                                child: TextField(
-                                                  cursorColor: Colors.white,
-                                                  // Gets the right controller using the helper method
-                                                  controller:
-                                                      controller.sl_NoTECs[0],
-                                                  textAlignVertical:
-                                                      TextAlignVertical.center,
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.w700,
-                                                  ),
-                                                  decoration: const InputDecoration(
-                                                    border: InputBorder.none,
-                                                    isDense: true,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
+                        Visibility(
+                          visible: false,
+                          child: SizedBox(
+                            width: sizes.width * .89,
+                            child: Center(
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.max,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  spacing: 17,
+                                  children: [
+                                    LiquidGlass(
+                                      clipBehavior: Clip.antiAlias,
+                                      shape: const LiquidRoundedSuperellipse(
+                                        borderRadius: Radius.circular(35),
                                       ),
-                                    ),
-                                  ),
-                                  Container(
-                                    height: sizes.appBarHeight * .85,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(17),
-                                      color: Colors.white,
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        "      Position      ",
-                                        style: TextStyle(
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.w700,
-                                          height: 0,
+                                      settings: LiquidGlassSettings(
+                                        thickness: 20,
+                                        glassColor: const Color(0x09FFFFFF),
+                                        lightIntensity: 3,
+                                        blend: 40,
+                                        ambientStrength: .35,
+                                        lightAngle: math.pi / 7,
+                                        chromaticAberration: 0,
+                                        refractiveIndex: 1.1,
+                                      ),
+                                      child: Container(
+                                        height: sizes.appBarHeight * 1.5,
+                                        width: 400,
+                                        padding: EdgeInsets.symmetric(horizontal: 31),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          spacing: 11,
+                                          children: [
+                                            Text(
+                                              "SL_NO",
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w700,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                            Expanded(
+                                              child: Container(
+                                                height: sizes.appBarHeight * .85,
+                                                padding: EdgeInsets.symmetric(
+                                                  horizontal: 11,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: controller
+                                                      .empties
+                                                      .value
+                                                      .where(
+                                                        (
+                                                        test,
+                                                        ) => test
+                                                        .values
+                                                        .contains(
+                                                      "SL_NO-0",
+                                                    ),
+                                                  )
+                                                      .isNotEmpty
+                                                      ? Colors.redAccent
+                                                      : Colors.white.withAlpha(31),
+                                                  borderRadius: BorderRadius.circular(
+                                                    17,
+                                                  ),
+                                                ),
+                                                child: Center(
+                                                  child: TextField(
+                                                    cursorColor: Colors.white,
+                                                    // Gets the right controller using the helper method
+                                                    controller:
+                                                        controller.sl_NoTECs[0],
+                                                    textAlignVertical:
+                                                        TextAlignVertical.center,
+                                                    style: const TextStyle(
+                                                      color: Colors.white,
+                                                      fontWeight: FontWeight.w700,
+                                                    ),
+                                                    decoration: const InputDecoration(
+                                                      border: InputBorder.none,
+                                                      isDense: true,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ),
-                                  ),
-                                  Container(
-                                    height: sizes.appBarHeight * .85,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(17),
-                                      color: Colors.white,
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        "      Feeder Vessel Info.      ",
-                                        style: TextStyle(
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.w700,
-                                          height: 0,
+                                    Container(
+                                      height: sizes.appBarHeight * .85,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(17),
+                                        color: Colors.white,
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          "      Position      ",
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                            fontWeight: FontWeight.w700,
+                                            height: 0,
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                ],
+                                    Container(
+                                      height: sizes.appBarHeight * .85,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(17),
+                                        color: Colors.white,
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          "      Feeder Vessel Info.      ",
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                            fontWeight: FontWeight.w700,
+                                            height: 0,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
@@ -528,2814 +664,2480 @@ class ImportBL extends GetView<ImportBLController> {
                             // height: sizes.height * .45,
                             child: SingleChildScrollView(
                               scrollDirection: Axis.horizontal,
-                              child: Row(
-                                spacing: 11,
-                                children: [
-                                  const SizedBox(width: 62),
-                                  SizedBox(
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.end,
+                              child: FocusTraversalGroup(
+                                policy: OrderedTraversalPolicy(),
+                                child: Column(
+                                  children: [
+                                    Row(
                                       spacing: 11,
                                       children: [
-                                        SizedBox(height: 31),
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          spacing: 11,
-                                          children: [
-                                            Text(
-                                              "CTG/ICD",
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w900,
-                                                fontSize: 17,
-                                              ),
-                                            ),
-                                            GestureDetector(
-                                              onTap: () => {
-                                                controller
-                                                        .bottomSheetTag1
-                                                        .value =
-                                                    "CTG",
-                                                controller
-                                                        .bottomSheetTag2
-                                                        .value =
-                                                    "ICD",
-                                                controller
-                                                    .shouldShowBottomSheet
-                                                    .value = !controller
-                                                    .shouldShowBottomSheet
-                                                    .value,
-                                              },
-                                              child: Container(
-                                                width:
-                                                    sizes.calculateTextWidth(
-                                                      "Feeder Vessel",
-                                                      const TextStyle(
-                                                        color: Colors.white,
-                                                        fontWeight:
-                                                            FontWeight.w700,
-                                                      ),
-                                                    ) *
-                                                    2,
-                                                height:
-                                                    sizes.appBarHeight * .77,
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 11.0,
-                                                    ),
-                                                decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(15),
-                                                  color:
-                                                  controller
-                                                      .empties
-                                                      .value
-                                                      .where(
-                                                        (
-                                                        test,
-                                                        ) => test
-                                                        .values
-                                                        .contains(
-                                                      "CTG/ICD-${controller.selectedBLIndex.value}",
-                                                    ),
-                                                  )
-                                                      .isNotEmpty
-                                                      ? Colors.redAccent
-                                                      : Colors.white.withAlpha(
-                                                    31,
-                                                  ),
-                                                ),
-                                                child: Row(
-                                                  // mainAxisSize: MainAxisSize.min,
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
+                                        const SizedBox(width: 62),
+                                        SizedBox(
+                                          child: FocusTraversalGroup(
+                                            policy: OrderedTraversalPolicy(),
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.end,
+                                              spacing: 11,
+                                              children: [
+                                                SizedBox(height: 31),
+                                                Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  spacing: 11,
                                                   children: [
                                                     Text(
-                                                      controller
-                                                              .portOfLandingTECs[controller
-                                                                  .selectedBLIndex
-                                                                  .value]
-                                                              .value
-                                                              .text
-                                                              .isEmpty
-                                                          ? "CTG"
-                                                          : controller
-                                                                .portOfLandingTECs[controller
-                                                                    .selectedBLIndex
-                                                                    .value]
-                                                                .value
-                                                                .text,
+                                                      "CTG/ICD",
                                                       style: const TextStyle(
                                                         color: Colors.white,
-                                                        fontWeight:
-                                                            FontWeight.w700,
+                                                        fontWeight: FontWeight.w900,
+                                                        fontSize: 17,
                                                       ),
                                                     ),
-                                                    Icon(
-                                                      CupertinoIcons
-                                                          .arrowtriangle_down_fill,
-                                                      color: Colors.white,
-                                                      size: 17,
+                                                    GestureDetector(
+                                                      onTap: () => {
+                                                        controller
+                                                                .bottomSheetTag1
+                                                                .value =
+                                                            "CTG",
+                                                        controller
+                                                                .bottomSheetTag2
+                                                                .value =
+                                                            "ICD",
+                                                        controller
+                                                            .shouldShowBottomSheet
+                                                            .value = !controller
+                                                            .shouldShowBottomSheet
+                                                            .value,
+                                                      },
+                                                      child: Container(
+                                                        width:
+                                                            sizes.calculateTextWidth(
+                                                              "Feeder Vessel",
+                                                              const TextStyle(
+                                                                color: Colors.white,
+                                                                fontWeight:
+                                                                    FontWeight.w700,
+                                                              ),
+                                                            ) *
+                                                            2,
+                                                        height:
+                                                            sizes.appBarHeight * .77,
+                                                        padding:
+                                                            const EdgeInsets.symmetric(
+                                                              horizontal: 11.0,
+                                                            ),
+                                                        decoration: BoxDecoration(
+                                                          borderRadius:
+                                                              BorderRadius.circular(15),
+                                                          color:
+                                                          controller
+                                                              .empties
+                                                              .value
+                                                              .where(
+                                                                (
+                                                                test,
+                                                                ) => test
+                                                                .values
+                                                                .contains(
+                                                              "CTG/ICD-${controller.selectedBLIndex.value}",
+                                                            ),
+                                                          )
+                                                              .isNotEmpty
+                                                              ? Colors.redAccent
+                                                              : Colors.white.withAlpha(
+                                                            31,
+                                                          ),
+                                                        ),
+                                                        child: Row(
+                                                          // mainAxisSize: MainAxisSize.min,
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .spaceBetween,
+                                                          children: [
+                                                            Text(
+                                                              controller
+                                                                      .portOfLandingTECs[controller
+                                                                          .selectedBLIndex
+                                                                          .value]
+                                                                      .value
+                                                                      .text
+                                                                      .isEmpty
+                                                                  ? "CTG"
+                                                                  : controller
+                                                                        .portOfLandingTECs[controller
+                                                                            .selectedBLIndex
+                                                                            .value]
+                                                                        .value
+                                                                        .text,
+                                                              style: const TextStyle(
+                                                                color: Colors.white,
+                                                                fontWeight:
+                                                                    FontWeight.w700,
+                                                              ),
+                                                            ),
+                                                            Icon(
+                                                              CupertinoIcons
+                                                                  .arrowtriangle_down_fill,
+                                                              color: Colors.white,
+                                                              size: 17,
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
                                                     ),
                                                   ],
                                                 ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.end,
-                                          spacing: 11,
-                                          children: [
-                                            Text(
-                                              "Sl No.",
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w900,
-                                                fontSize: 17,
-                                              ),
-                                            ),
-                                            Container(
-                                              width:
-                                                  sizes.calculateTextWidth(
-                                                    "Feeder Vessel",
-                                                    const TextStyle(
-                                                      color: Colors.white,
-                                                      fontWeight:
-                                                          FontWeight.w700,
+                                                Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.end,
+                                                  spacing: 11,
+                                                  children: [
+                                                    Text(
+                                                      "Sl No.",
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight: FontWeight.w900,
+                                                        fontSize: 17,
+                                                      ),
                                                     ),
-                                                  ) *
-                                                  2,
-                                              height: sizes.appBarHeight * .77,
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 8.0,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(15),
-                                                color: controller
-                                                    .empties
-                                                    .value
-                                                    .where(
-                                                      (
-                                                      test,
-                                                      ) => test
-                                                      .values
-                                                      .contains(
-                                                    "Sl No.-${controller.selectedBLIndex.value}",
-                                                  ),
-                                                )
-                                                    .isNotEmpty
-                                                    ? Colors.redAccent
-                                                    : Colors.white.withAlpha(
-                                                  31,
+                                                    Container(
+                                                      width:
+                                                          sizes.calculateTextWidth(
+                                                            "Feeder Vessel",
+                                                            const TextStyle(
+                                                              color: Colors.white,
+                                                              fontWeight:
+                                                                  FontWeight.w700,
+                                                            ),
+                                                          ) *
+                                                          2,
+                                                      height: sizes.appBarHeight * .77,
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 8.0,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        borderRadius:
+                                                            BorderRadius.circular(15),
+                                                        color: controller
+                                                            .empties
+                                                            .value
+                                                            .where(
+                                                              (
+                                                              test,
+                                                              ) => test
+                                                              .values
+                                                              .contains(
+                                                            "Sl No.-${controller.selectedBLIndex.value}",
+                                                          ),
+                                                        )
+                                                            .isNotEmpty
+                                                            ? Colors.redAccent
+                                                            : Colors.white.withAlpha(
+                                                          31,
+                                                        ),
+                                                      ),
+                                                      child: Center(
+                                                        child: Focus(
+                                                          focusNode:
+                                                              controller.focusNode,
+                                                          onKey:
+                                                              (
+                                                                FocusNode node,
+                                                                RawKeyEvent event,
+                                                              ) {
+                                                                // We only want to act when the right arrow key is pressed down.
+                                                                if (event.logicalKey ==
+                                                                        LogicalKeyboardKey
+                                                                            .arrowRight &&
+                                                                    event
+                                                                        is RawKeyDownEvent) {
+                                                                  print("boom");
+                                                                  controller
+                                                                      .addRowToContainerTable();
+                                                                  controller
+                                                                      .addBlTableTECs();
+                                                                  controller
+                                                                      .selectedBLIndex
+                                                                      .value++;
+
+                                                                  if (controller
+                                                                          .blNoTECs
+                                                                          .length <
+                                                                      controller
+                                                                          .selectedBLIndex
+                                                                          .value) {
+                                                                    controller
+                                                                        .addBlTableTECs();
+                                                                  }
+
+                                                                  return KeyEventResult
+                                                                      .handled;
+                                                                }
+
+                                                                // We only want to act when the left arrow key is pressed down.
+                                                                if (event.logicalKey ==
+                                                                        LogicalKeyboardKey
+                                                                            .arrowLeft &&
+                                                                    event
+                                                                        is RawKeyDownEvent) {
+                                                                  print("boom");
+                                                                  if (controller
+                                                                          .selectedBLIndex
+                                                                          .value >
+                                                                      0) {
+                                                                    controller
+                                                                        .selectedBLIndex
+                                                                        .value--;
+                                                                  }
+
+                                                                  return KeyEventResult
+                                                                      .handled;
+                                                                }
+
+                                                                // For all other keys, let the system handle them as usual.
+                                                                return KeyEventResult
+                                                                    .ignored;
+                                                              },
+                                                          child: TextField(
+                                                            cursorColor: Colors.white,
+                                                            // Gets the right controller using the helper method
+                                                            controller:
+                                                                controller
+                                                                    .slNoTECs[controller
+                                                                    .selectedBLIndex
+                                                                    .value],
+                                                            textAlignVertical:
+                                                                TextAlignVertical
+                                                                    .center,
+                                                            style: const TextStyle(
+                                                              color: Colors.white,
+                                                              fontWeight:
+                                                                  FontWeight.w700,
+                                                            ),
+                                                            decoration:
+                                                                const InputDecoration(
+                                                                  border:
+                                                                      InputBorder.none,
+                                                                  isDense: true,
+                                                                ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
-                                              ),
-                                              child: Center(
-                                                child: Focus(
-                                                  focusNode:
-                                                      controller.focusNode,
-                                                  onKey:
-                                                      (
-                                                        FocusNode node,
-                                                        RawKeyEvent event,
-                                                      ) {
-                                                        // We only want to act when the right arrow key is pressed down.
-                                                        if (event.logicalKey ==
-                                                                LogicalKeyboardKey
-                                                                    .arrowRight &&
-                                                            event
-                                                                is RawKeyDownEvent) {
-                                                          print("boom");
-                                                          controller
-                                                              .addRowToContainerTable();
-                                                          controller
-                                                              .addBlTableTECs();
-                                                          controller
-                                                              .selectedBLIndex
-                                                              .value++;
-
-                                                          if (controller
-                                                                  .blNoTECs
-                                                                  .length <
+                                                Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  spacing: 11,
+                                                  children: [
+                                                    Text(
+                                                      "Line No.",
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight: FontWeight.w900,
+                                                        fontSize: 17,
+                                                      ),
+                                                    ),
+                                                    Container(
+                                                      width:
+                                                          sizes.calculateTextWidth(
+                                                            "Feeder Vessel",
+                                                            const TextStyle(
+                                                              color: Colors.white,
+                                                              fontWeight:
+                                                                  FontWeight.w700,
+                                                            ),
+                                                          ) *
+                                                          2,
+                                                      height: sizes.appBarHeight * .77,
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 8.0,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        borderRadius:
+                                                            BorderRadius.circular(15),
+                                                        color: controller
+                                                            .empties
+                                                            .value
+                                                            .where(
+                                                              (
+                                                              test,
+                                                              ) => test
+                                                              .values
+                                                              .contains(
+                                                            "Line No.-${controller.selectedBLIndex.value}",
+                                                          ),
+                                                        )
+                                                            .isNotEmpty
+                                                            ? Colors.redAccent
+                                                            : Colors.white.withAlpha(
+                                                          31,
+                                                        ),
+                                                      ),
+                                                      child: Center(
+                                                        child: TextField(
+                                                          cursorColor: Colors.white,
+                                                          // Gets the right controller using the helper method
+                                                          controller:
                                                               controller
+                                                                  .blLineNoTECs[controller
                                                                   .selectedBLIndex
-                                                                  .value) {
-                                                            controller
-                                                                .addBlTableTECs();
-                                                          }
-
-                                                          return KeyEventResult
-                                                              .handled;
-                                                        }
-
-                                                        // We only want to act when the left arrow key is pressed down.
-                                                        if (event.logicalKey ==
-                                                                LogicalKeyboardKey
-                                                                    .arrowLeft &&
-                                                            event
-                                                                is RawKeyDownEvent) {
-                                                          print("boom");
-                                                          if (controller
+                                                                  .value],
+                                                          textAlignVertical:
+                                                              TextAlignVertical.center,
+                                                          style: const TextStyle(
+                                                            color: Colors.white,
+                                                            fontWeight: FontWeight.w700,
+                                                          ),
+                                                          decoration:
+                                                              const InputDecoration(
+                                                                border:
+                                                                    InputBorder.none,
+                                                                isDense: true,
+                                                              ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  spacing: 11,
+                                                  children: [
+                                                    Text(
+                                                      "Bl No.",
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight: FontWeight.w900,
+                                                        fontSize: 17,
+                                                      ),
+                                                    ),
+                                                    Container(
+                                                      width:
+                                                          sizes.calculateTextWidth(
+                                                            "Feeder Vessel",
+                                                            const TextStyle(
+                                                              color: Colors.white,
+                                                              fontWeight:
+                                                                  FontWeight.w700,
+                                                            ),
+                                                          ) *
+                                                          2,
+                                                      height: sizes.appBarHeight * .77,
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 8.0,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        borderRadius:
+                                                            BorderRadius.circular(15),
+                                                        color: controller
+                                                            .empties
+                                                            .value
+                                                            .where(
+                                                              (
+                                                              test,
+                                                              ) => test
+                                                              .values
+                                                              .contains(
+                                                            "Bl No.-${controller.selectedBLIndex.value}",
+                                                          ),
+                                                        )
+                                                            .isNotEmpty
+                                                            ? Colors.redAccent
+                                                            : Colors.white.withAlpha(
+                                                          31,
+                                                        ),
+                                                      ),
+                                                      child: Center(
+                                                        child: TextField(
+                                                          cursorColor: Colors.white,
+                                                          // Gets the right controller using the helper method
+                                                          controller:
+                                                              controller
+                                                                  .blNoTECs[controller
                                                                   .selectedBLIndex
-                                                                  .value >
-                                                              0) {
-                                                            controller
-                                                                .selectedBLIndex
-                                                                .value--;
-                                                          }
+                                                                  .value],
+                                                          textAlignVertical:
+                                                              TextAlignVertical.center,
+                                                          style: const TextStyle(
+                                                            color: Colors.white,
+                                                            fontWeight: FontWeight.w700,
+                                                          ),
+                                                          decoration:
+                                                              const InputDecoration(
+                                                                border:
+                                                                    InputBorder.none,
+                                                                isDense: true,
+                                                              ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  spacing: 11,
+                                                  children: [
+                                                    Text(
+                                                      "Fcl/Qty",
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight: FontWeight.w900,
+                                                        fontSize: 17,
+                                                      ),
+                                                    ),
+                                                    SizedBox(
+                                                      width:
+                                                          sizes.calculateTextWidth(
+                                                            "Feeder Vessel",
+                                                            const TextStyle(
+                                                              color: Colors.white,
+                                                              fontWeight:
+                                                                  FontWeight.w700,
+                                                            ),
+                                                          ) *
+                                                          2,
+                                                      height: sizes.appBarHeight * .77,
+                                                      child: Row(
+                                                        mainAxisSize: MainAxisSize.min,
+                                                        spacing: 11,
+                                                        children: [
+                                                          Container(
+                                                            width:
+                                                                sizes.calculateTextWidth(
+                                                                      "Feeder Vessel",
+                                                                      const TextStyle(
+                                                                        color: Colors
+                                                                            .white,
+                                                                        fontWeight:
+                                                                            FontWeight
+                                                                                .w700,
+                                                                      ),
+                                                                    ) *
+                                                                    2 *
+                                                                    .6 -
+                                                                5.5,
+                                                            height:
+                                                                sizes.appBarHeight *
+                                                                .77,
+                                                            padding:
+                                                                const EdgeInsets.symmetric(
+                                                                  horizontal: 8.0,
+                                                                ),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius:
+                                                                  BorderRadius.circular(
+                                                                    15,
+                                                                  ),
+                                                              color: controller
+                                                                  .empties
+                                                                  .value
+                                                                  .where(
+                                                                    (
+                                                                    test,
+                                                                    ) => test
+                                                                    .values
+                                                                    .contains(
+                                                                  "Fcl-${controller.selectedBLIndex.value}",
+                                                                ),
+                                                              )
+                                                                  .isNotEmpty
+                                                                  ? Colors.redAccent
+                                                                  : Colors.white
+                                                                  .withAlpha(31),
+                                                            ),
+                                                            child: Center(
+                                                              child: TextField(
+                                                                cursorColor:
+                                                                    Colors.white,
 
-                                                          return KeyEventResult
-                                                              .handled;
-                                                        }
+                                                                onChanged: (s) {
+                                                                  controller.quantityTECs[controller.selectedBLIndex.value].text = s;
+                                                                },
+                                                                // Gets the right controller using the helper method
+                                                                controller:
+                                                                    controller
+                                                                        .fclTECs[controller
+                                                                        .selectedBLIndex
+                                                                        .value],
+                                                                textAlignVertical:
+                                                                    TextAlignVertical
+                                                                        .center,
+                                                                style: const TextStyle(
+                                                                  color: Colors.white,
+                                                                  fontWeight:
+                                                                      FontWeight.w700,
+                                                                ),
+                                                                decoration:
+                                                                    const InputDecoration(
+                                                                      border:
+                                                                          InputBorder
+                                                                              .none,
+                                                                      isDense: true,
+                                                                    ),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          Container(
+                                                            width:
+                                                                sizes.calculateTextWidth(
+                                                                      "Feeder Vessel",
+                                                                      const TextStyle(
+                                                                        color: Colors
+                                                                            .white,
+                                                                        fontWeight:
+                                                                            FontWeight
+                                                                                .w700,
+                                                                      ),
+                                                                    ) *
+                                                                    2 *
+                                                                    .4 -
+                                                                5.5,
+                                                            height:
+                                                                sizes.appBarHeight *
+                                                                .77,
+                                                            padding:
+                                                                const EdgeInsets.symmetric(
+                                                                  horizontal: 8.0,
+                                                                ),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius:
+                                                                  BorderRadius.circular(
+                                                                    15,
+                                                                  ),
+                                                              color: controller
+                                                                  .empties
+                                                                  .value
+                                                                  .where(
+                                                                    (
+                                                                    test,
+                                                                    ) => test
+                                                                    .values
+                                                                    .contains(
+                                                                  "Fcl/Qty-${controller.selectedBLIndex.value}",
+                                                                ),
+                                                              )
+                                                                  .isNotEmpty
+                                                                  ? Colors.redAccent
+                                                                  : Colors.white
+                                                                  .withAlpha(31),
+                                                            ),
+                                                            child: Center(
+                                                              child: TextField(
+                                                                cursorColor:
+                                                                    Colors.white,
+                                                                // Gets the right controller using the helper method
+                                                                controller:
+                                                                    controller
+                                                                        .fclQtyTECs[controller
+                                                                        .selectedBLIndex
+                                                                        .value],
+                                                                textAlignVertical:
+                                                                    TextAlignVertical
+                                                                        .center,
+                                                                style: const TextStyle(
+                                                                  color: Colors.white,
+                                                                  fontWeight:
+                                                                      FontWeight.w700,
+                                                                ),
+                                                                decoration:
+                                                                    const InputDecoration(
+                                                                      border:
+                                                                          InputBorder
+                                                                              .none,
+                                                                      isDense: true,
+                                                                    ),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  spacing: 11,
+                                                  children: [
+                                                    Text(
+                                                      "Lcl/Consl.",
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight: FontWeight.w900,
+                                                        fontSize: 17,
+                                                      ),
+                                                    ),
 
-                                                        // For all other keys, let the system handle them as usual.
-                                                        return KeyEventResult
-                                                            .ignored;
-                                                      },
+                                                    Row(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      spacing: 11,
+                                                      children: [
+                                                        Container(
+                                                          width:
+                                                              sizes.calculateTextWidth(
+                                                                    "Feeder Vessel",
+                                                                    const TextStyle(
+                                                                      color:
+                                                                          Colors.white,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w700,
+                                                                    ),
+                                                                  ) *
+                                                                  2 *
+                                                                  .6 -
+                                                              5.5,
+                                                          height:
+                                                              sizes.appBarHeight * .77,
+                                                          padding:
+                                                              const EdgeInsets.symmetric(
+                                                                horizontal: 8.0,
+                                                              ),
+                                                          decoration: BoxDecoration(
+                                                            borderRadius:
+                                                                BorderRadius.circular(
+                                                                  15,
+                                                                ),
+                                                            color: controller
+                                                                .empties
+                                                                .value
+                                                                .where(
+                                                                  (
+                                                                  test,
+                                                                  ) => test
+                                                                  .values
+                                                                  .contains(
+                                                                "Lcl-${controller.selectedBLIndex.value}",
+                                                              ),
+                                                            )
+                                                                .isNotEmpty
+                                                                ? Colors.redAccent
+                                                                : Colors.white
+                                                                .withAlpha(31),
+                                                          ),
+                                                          child: Center(
+                                                            child: TextField(
+                                                              cursorColor: Colors.white,
+                                                              // Gets the right controller using the helper method
+                                                              controller:
+                                                                  controller
+                                                                      .lclTECs[controller
+                                                                      .selectedBLIndex
+                                                                      .value],
+
+                                                              onChanged: (s) {
+                                                                controller.quantityTECs[controller.selectedBLIndex.value].text = s;
+                                                              },
+                                                              textAlignVertical:
+                                                                  TextAlignVertical
+                                                                      .center,
+                                                              style: const TextStyle(
+                                                                color: Colors.white,
+                                                                fontWeight:
+                                                                    FontWeight.w700,
+                                                              ),
+                                                              decoration:
+                                                                  const InputDecoration(
+                                                                    border: InputBorder
+                                                                        .none,
+                                                                    isDense: true,
+                                                                  ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        Container(
+                                                          width:
+                                                              sizes.calculateTextWidth(
+                                                                    "Feeder Vessel",
+                                                                    const TextStyle(
+                                                                      color:
+                                                                          Colors.white,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w700,
+                                                                    ),
+                                                                  ) *
+                                                                  2 *
+                                                                  .4 -
+                                                              5.5,
+                                                          height:
+                                                              sizes.appBarHeight * .77,
+                                                          padding:
+                                                              const EdgeInsets.symmetric(
+                                                                horizontal: 8.0,
+                                                              ),
+                                                          decoration: BoxDecoration(
+                                                            borderRadius:
+                                                                BorderRadius.circular(
+                                                                  15,
+                                                                ),
+                                                            color: controller
+                                                                .empties
+                                                                .value
+                                                                .where(
+                                                                  (
+                                                                  test,
+                                                                  ) => test
+                                                                  .values
+                                                                  .contains(
+                                                                "Lcl/Consl.-${controller.selectedBLIndex.value}",
+                                                              ),
+                                                            )
+                                                                .isNotEmpty
+                                                                ? Colors.redAccent
+                                                                : Colors.white
+                                                                .withAlpha(31),
+                                                          ),
+                                                          child: Center(
+                                                            child: TextField(
+                                                              cursorColor: Colors.white,
+                                                              // Gets the right controller using the helper method
+                                                              controller:
+                                                                  controller
+                                                                      .lclConsolidatedTECs[controller
+                                                                      .selectedBLIndex
+                                                                      .value],
+                                                              textAlignVertical:
+                                                                  TextAlignVertical
+                                                                      .center,
+                                                              style: const TextStyle(
+                                                                color: Colors.white,
+                                                                fontWeight:
+                                                                    FontWeight.w700,
+                                                              ),
+                                                              decoration:
+                                                                  const InputDecoration(
+                                                                    border: InputBorder
+                                                                        .none,
+                                                                    isDense: true,
+                                                                  ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
+                                                SizedBox(height: 31),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+
+                                        SizedBox(
+                                          child: FocusTraversalGroup(
+                                            policy: OrderedTraversalPolicy(),
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.end,
+                                              spacing: 11,
+                                              children: [
+                                                SizedBox(height: 31),
+                                                Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  spacing: 11,
+                                                  children: [
+                                                    Text(
+                                                      "Consig. Code",
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight: FontWeight.w900,
+                                                        fontSize: 17,
+                                                      ),
+                                                    ),
+                                                    Container(
+                                                      width:
+                                                          sizes.calculateTextWidth(
+                                                            "Feeder Vessel",
+                                                            const TextStyle(
+                                                              color: Colors.white,
+                                                              fontWeight:
+                                                                  FontWeight.w700,
+                                                            ),
+                                                          ) *
+                                                          2,
+                                                      height: sizes.appBarHeight * .77,
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 8.0,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        borderRadius:
+                                                            BorderRadius.circular(15),
+                                                        color:
+                                                        controller
+                                                            .empties
+                                                            .value
+                                                            .where(
+                                                              (
+                                                              test,
+                                                              ) => test
+                                                              .values
+                                                              .contains(
+                                                            "Consig. Code-${controller.selectedBLIndex.value}",
+                                                          ),
+                                                        )
+                                                            .isNotEmpty
+                                                            ? Colors.redAccent
+                                                            : Colors.white.withAlpha(
+                                                          31,
+                                                        ),
+                                                      ),
+                                                      child: Center(
+                                                        child: TextField(
+                                                          cursorColor: Colors.white,
+                                                          // Gets the right controller using the helper method
+                                                          controller:
+                                                              controller
+                                                                  .consigneeCodeTECs[controller
+                                                                  .selectedBLIndex
+                                                                  .value],
+                                                          textAlignVertical:
+                                                              TextAlignVertical.center,
+                                                          style: const TextStyle(
+                                                            color: Colors.white,
+                                                            fontWeight: FontWeight.w700,
+                                                          ),
+                                                          decoration:
+                                                              const InputDecoration(
+                                                                border:
+                                                                    InputBorder.none,
+                                                                isDense: true,
+                                                              ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.end,
+                                                  spacing: 11,
+                                                  children: [
+                                                    Text(
+                                                      "Consignee",
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight: FontWeight.w900,
+                                                        fontSize: 17,
+                                                      ),
+                                                    ),
+                                                    Container(
+                                                      width:
+                                                          sizes.calculateTextWidth(
+                                                            "Feeder Vessel",
+                                                            const TextStyle(
+                                                              color: Colors.white,
+                                                              fontWeight:
+                                                                  FontWeight.w700,
+                                                            ),
+                                                          ) *
+                                                          2,
+                                                      height: sizes.appBarHeight * .77,
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 8.0,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        borderRadius:
+                                                            BorderRadius.circular(15),
+                                                        color:
+                                                        controller
+                                                            .empties
+                                                            .value
+                                                            .where(
+                                                              (
+                                                              test,
+                                                              ) => test
+                                                              .values
+                                                              .contains(
+                                                            "Consignee-${controller.selectedBLIndex.value}",
+                                                          ),
+                                                        )
+                                                            .isNotEmpty
+                                                            ? Colors.redAccent
+                                                            : Colors.white.withAlpha(
+                                                          31,
+                                                        ),
+                                                      ),
+                                                      child: Center(
+                                                        child: TextField(
+                                                          cursorColor: Colors.white,
+                                                          // Gets the right controller using the helper method
+                                                          controller:
+                                                              controller
+                                                                  .consigneeTECs[controller
+                                                                  .selectedBLIndex
+                                                                  .value],
+                                                          textAlignVertical:
+                                                              TextAlignVertical.center,
+                                                          style: const TextStyle(
+                                                            color: Colors.white,
+                                                            fontWeight: FontWeight.w700,
+                                                          ),
+                                                          decoration:
+                                                              const InputDecoration(
+                                                                border:
+                                                                    InputBorder.none,
+                                                                isDense: true,
+                                                              ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.end,
+                                                  spacing: 11,
+                                                  children: [
+                                                    Text(
+                                                      "Con. Address",
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight: FontWeight.w900,
+                                                        fontSize: 17,
+                                                      ),
+                                                    ),
+                                                    Container(
+                                                      width:
+                                                          sizes.calculateTextWidth(
+                                                            "Feeder Vessel",
+                                                            const TextStyle(
+                                                              color: Colors.white,
+                                                              fontWeight:
+                                                                  FontWeight.w700,
+                                                            ),
+                                                          ) *
+                                                          2,
+                                                      height: sizes.appBarHeight * .77,
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 8.0,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        borderRadius:
+                                                            BorderRadius.circular(15),
+                                                        color:
+                                                        controller
+                                                            .empties
+                                                            .value
+                                                            .where(
+                                                              (
+                                                              test,
+                                                              ) => test
+                                                              .values
+                                                              .contains(
+                                                            "Con. Address-${controller.selectedBLIndex.value}",
+                                                          ),
+                                                        )
+                                                            .isNotEmpty
+                                                            ? Colors.redAccent
+                                                            : Colors.white.withAlpha(
+                                                          31,
+                                                        ),
+                                                      ),
+                                                      child: Center(
+                                                        child: TextField(
+                                                          cursorColor: Colors.white,
+                                                          // Gets the right controller using the helper method
+                                                          controller:
+                                                              controller
+                                                                  .consigneeAddressTECs[controller
+                                                                  .selectedBLIndex
+                                                                  .value],
+                                                          textAlignVertical:
+                                                              TextAlignVertical.center,
+                                                          style: const TextStyle(
+                                                            color: Colors.white,
+                                                            fontWeight: FontWeight.w700,
+                                                          ),
+                                                          decoration:
+                                                              const InputDecoration(
+                                                                border:
+                                                                    InputBorder.none,
+                                                                isDense: true,
+                                                              ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  spacing: 11,
+                                                  children: [
+                                                    Text(
+                                                      "Exporter",
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight: FontWeight.w900,
+                                                        fontSize: 17,
+                                                      ),
+                                                    ),
+                                                    Container(
+                                                      width:
+                                                          sizes.calculateTextWidth(
+                                                            "Feeder Vessel",
+                                                            const TextStyle(
+                                                              color: Colors.white,
+                                                              fontWeight:
+                                                                  FontWeight.w700,
+                                                            ),
+                                                          ) *
+                                                          2,
+                                                      height:
+                                                          sizes.appBarHeight * .77 * 3 +
+                                                          22,
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 11.0,
+                                                            vertical: 11
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        borderRadius:
+                                                            BorderRadius.circular(15),
+                                                        color:
+                                                        controller
+                                                            .empties
+                                                            .value
+                                                            .where(
+                                                              (
+                                                              test,
+                                                              ) => test
+                                                              .values
+                                                              .contains(
+                                                            "Exporter-${controller.selectedBLIndex.value}",
+                                                          ),
+                                                        )
+                                                            .isNotEmpty
+                                                            ? Colors.redAccent
+                                                            : Colors.white.withAlpha(
+                                                          31,
+                                                        ),
+                                                      ),
+                                                      child: Center(
+                                                        child: TextField(
+                                                          cursorColor: Colors.white,
+                                                          // Gets the right controller using the helper method
+                                                          controller:
+                                                              controller
+                                                                  .exporterTECs[controller
+                                                                  .selectedBLIndex
+                                                                  .value],
+                                                          textAlignVertical:
+                                                              TextAlignVertical.center,
+                                                          style: const TextStyle(
+                                                            color: Colors.white,
+                                                            fontWeight: FontWeight.w700,
+                                                          ),
+                                                          decoration:
+                                                              const InputDecoration(
+                                                                border:
+                                                                    InputBorder.none,
+                                                                isDense: true,
+                                                              ),
+                                                          maxLines: 1000,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                SizedBox(height: 31),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+
+                                        SizedBox(
+                                          child: FocusTraversalGroup(
+                                            policy: OrderedTraversalPolicy(),
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              spacing: 0,
+                                              children: [
+                                                SizedBox(height: 31),
+                                                SizedBox(
+                                                  height: sizes.appBarHeight * .85,
+                                                  child: Center(
+                                                    child: Text(
+                                                      "Remarks",
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight: FontWeight.w900,
+                                                        fontSize: 17,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                                Container(
+                                                  width:
+                                                      sizes.calculateTextWidth(
+                                                        "Feeder Vessel",
+                                                        const TextStyle(
+                                                          color: Colors.white,
+                                                          fontWeight: FontWeight.w700,
+                                                        ),
+                                                      ) *
+                                                      2,
+                                                  height:
+                                                      sizes.appBarHeight * .77 * 5 + 55,
+                                                  padding: const EdgeInsets.symmetric(
+                                                    horizontal: 11.0,
+                                                    vertical: 11
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    borderRadius: BorderRadius.circular(
+                                                      15,
+                                                    ),
+                                                    color:
+                                                    controller
+                                                        .empties
+                                                        .value
+                                                        .where(
+                                                          (
+                                                          test,
+                                                          ) => test
+                                                          .values
+                                                          .contains(
+                                                        "BL Remarks-${controller.selectedBLIndex.value}",
+                                                      ),
+                                                    )
+                                                        .isNotEmpty
+                                                        ? Colors.redAccent
+                                                        : Colors.white.withAlpha(31),
+                                                  ),
                                                   child: TextField(
                                                     cursorColor: Colors.white,
                                                     // Gets the right controller using the helper method
                                                     controller:
                                                         controller
-                                                            .slNoTECs[controller
+                                                            .blRemarksTECs[controller
                                                             .selectedBLIndex
                                                             .value],
                                                     textAlignVertical:
-                                                        TextAlignVertical
-                                                            .center,
+                                                        TextAlignVertical.center,
                                                     style: const TextStyle(
                                                       color: Colors.white,
-                                                      fontWeight:
-                                                          FontWeight.w700,
+                                                      fontWeight: FontWeight.w700,
                                                     ),
-                                                    decoration:
-                                                        const InputDecoration(
-                                                          border:
-                                                              InputBorder.none,
-                                                          isDense: true,
-                                                        ),
+                                                    decoration: const InputDecoration(
+                                                      border: InputBorder.none,
+                                                      isDense: true,
+                                                    ),
+                                                    maxLines: 1000,
                                                   ),
                                                 ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          spacing: 11,
-                                          children: [
-                                            Text(
-                                              "Line No.",
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w900,
-                                                fontSize: 17,
-                                              ),
-                                            ),
-                                            Container(
-                                              width:
-                                                  sizes.calculateTextWidth(
-                                                    "Feeder Vessel",
-                                                    const TextStyle(
-                                                      color: Colors.white,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                    ),
-                                                  ) *
-                                                  2,
-                                              height: sizes.appBarHeight * .77,
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 8.0,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(15),
-                                                color: controller
-                                                    .empties
-                                                    .value
-                                                    .where(
-                                                      (
-                                                      test,
-                                                      ) => test
-                                                      .values
-                                                      .contains(
-                                                    "Line No.-${controller.selectedBLIndex.value}",
-                                                  ),
-                                                )
-                                                    .isNotEmpty
-                                                    ? Colors.redAccent
-                                                    : Colors.white.withAlpha(
-                                                  31,
-                                                ),
-                                              ),
-                                              child: Center(
-                                                child: TextField(
-                                                  cursorColor: Colors.white,
-                                                  // Gets the right controller using the helper method
-                                                  controller:
-                                                      controller
-                                                          .blLineNoTECs[controller
-                                                          .selectedBLIndex
-                                                          .value],
-                                                  textAlignVertical:
-                                                      TextAlignVertical.center,
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.w700,
-                                                  ),
-                                                  decoration:
-                                                      const InputDecoration(
-                                                        border:
-                                                            InputBorder.none,
-                                                        isDense: true,
-                                                      ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          spacing: 11,
-                                          children: [
-                                            Text(
-                                              "Bl No.",
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w900,
-                                                fontSize: 17,
-                                              ),
-                                            ),
-                                            Container(
-                                              width:
-                                                  sizes.calculateTextWidth(
-                                                    "Feeder Vessel",
-                                                    const TextStyle(
-                                                      color: Colors.white,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                    ),
-                                                  ) *
-                                                  2,
-                                              height: sizes.appBarHeight * .77,
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 8.0,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(15),
-                                                color: controller
-                                                    .empties
-                                                    .value
-                                                    .where(
-                                                      (
-                                                      test,
-                                                      ) => test
-                                                      .values
-                                                      .contains(
-                                                    "Bl No.-${controller.selectedBLIndex.value}",
-                                                  ),
-                                                )
-                                                    .isNotEmpty
-                                                    ? Colors.redAccent
-                                                    : Colors.white.withAlpha(
-                                                  31,
-                                                ),
-                                              ),
-                                              child: Center(
-                                                child: TextField(
-                                                  cursorColor: Colors.white,
-                                                  // Gets the right controller using the helper method
-                                                  controller:
-                                                      controller
-                                                          .blNoTECs[controller
-                                                          .selectedBLIndex
-                                                          .value],
-                                                  textAlignVertical:
-                                                      TextAlignVertical.center,
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.w700,
-                                                  ),
-                                                  decoration:
-                                                      const InputDecoration(
-                                                        border:
-                                                            InputBorder.none,
-                                                        isDense: true,
-                                                      ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          spacing: 11,
-                                          children: [
-                                            Text(
-                                              "Fcl/Qty",
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w900,
-                                                fontSize: 17,
-                                              ),
-                                            ),
-                                            SizedBox(
-                                              width:
-                                                  sizes.calculateTextWidth(
-                                                    "Feeder Vessel",
-                                                    const TextStyle(
-                                                      color: Colors.white,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                    ),
-                                                  ) *
-                                                  2,
-                                              height: sizes.appBarHeight * .77,
-                                              child: Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                spacing: 11,
-                                                children: [
-                                                  Container(
-                                                    width:
-                                                        sizes.calculateTextWidth(
-                                                              "Feeder Vessel",
-                                                              const TextStyle(
-                                                                color: Colors
-                                                                    .white,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w700,
-                                                              ),
-                                                            ) *
-                                                            2 *
-                                                            .6 -
-                                                        5.5,
-                                                    height:
-                                                        sizes.appBarHeight *
-                                                        .77,
-                                                    padding:
-                                                        const EdgeInsets.symmetric(
-                                                          horizontal: 8.0,
-                                                        ),
-                                                    decoration: BoxDecoration(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            15,
-                                                          ),
-                                                      color: controller
-                                                          .empties
-                                                          .value
-                                                          .where(
-                                                            (
-                                                            test,
-                                                            ) => test
-                                                            .values
-                                                            .contains(
-                                                          "Fcl-${controller.selectedBLIndex.value}",
-                                                        ),
-                                                      )
-                                                          .isNotEmpty
-                                                          ? Colors.redAccent
-                                                          : Colors.white
-                                                          .withAlpha(31),
-                                                    ),
-                                                    child: Center(
-                                                      child: TextField(
-                                                        cursorColor:
-                                                            Colors.white,
-                                                        // Gets the right controller using the helper method
-                                                        controller:
-                                                            controller
-                                                                .fclTECs[controller
-                                                                .selectedBLIndex
-                                                                .value],
-                                                        textAlignVertical:
-                                                            TextAlignVertical
-                                                                .center,
-                                                        style: const TextStyle(
-                                                          color: Colors.white,
-                                                          fontWeight:
-                                                              FontWeight.w700,
-                                                        ),
-                                                        decoration:
-                                                            const InputDecoration(
-                                                              border:
-                                                                  InputBorder
-                                                                      .none,
-                                                              isDense: true,
-                                                            ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  Container(
-                                                    width:
-                                                        sizes.calculateTextWidth(
-                                                              "Feeder Vessel",
-                                                              const TextStyle(
-                                                                color: Colors
-                                                                    .white,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w700,
-                                                              ),
-                                                            ) *
-                                                            2 *
-                                                            .4 -
-                                                        5.5,
-                                                    height:
-                                                        sizes.appBarHeight *
-                                                        .77,
-                                                    padding:
-                                                        const EdgeInsets.symmetric(
-                                                          horizontal: 8.0,
-                                                        ),
-                                                    decoration: BoxDecoration(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            15,
-                                                          ),
-                                                      color: controller
-                                                          .empties
-                                                          .value
-                                                          .where(
-                                                            (
-                                                            test,
-                                                            ) => test
-                                                            .values
-                                                            .contains(
-                                                          "Fcl/Qty-${controller.selectedBLIndex.value}",
-                                                        ),
-                                                      )
-                                                          .isNotEmpty
-                                                          ? Colors.redAccent
-                                                          : Colors.white
-                                                          .withAlpha(31),
-                                                    ),
-                                                    child: Center(
-                                                      child: TextField(
-                                                        cursorColor:
-                                                            Colors.white,
-                                                        // Gets the right controller using the helper method
-                                                        controller:
-                                                            controller
-                                                                .fclQtyTECs[controller
-                                                                .selectedBLIndex
-                                                                .value],
-                                                        textAlignVertical:
-                                                            TextAlignVertical
-                                                                .center,
-                                                        style: const TextStyle(
-                                                          color: Colors.white,
-                                                          fontWeight:
-                                                              FontWeight.w700,
-                                                        ),
-                                                        decoration:
-                                                            const InputDecoration(
-                                                              border:
-                                                                  InputBorder
-                                                                      .none,
-                                                              isDense: true,
-                                                            ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          spacing: 11,
-                                          children: [
-                                            Text(
-                                              "Lcl/Consl.",
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w900,
-                                                fontSize: 17,
-                                              ),
-                                            ),
-
-                                            Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              spacing: 11,
-                                              children: [
-                                                Container(
-                                                  width:
-                                                      sizes.calculateTextWidth(
-                                                            "Feeder Vessel",
-                                                            const TextStyle(
-                                                              color:
-                                                                  Colors.white,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w700,
-                                                            ),
-                                                          ) *
-                                                          2 *
-                                                          .6 -
-                                                      5.5,
-                                                  height:
-                                                      sizes.appBarHeight * .77,
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 8.0,
-                                                      ),
-                                                  decoration: BoxDecoration(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          15,
-                                                        ),
-                                                    color: controller
-                                                        .empties
-                                                        .value
-                                                        .where(
-                                                          (
-                                                          test,
-                                                          ) => test
-                                                          .values
-                                                          .contains(
-                                                        "Lcl-${controller.selectedBLIndex.value}",
-                                                      ),
-                                                    )
-                                                        .isNotEmpty
-                                                        ? Colors.redAccent
-                                                        : Colors.white
-                                                        .withAlpha(31),
-                                                  ),
-                                                  child: Center(
-                                                    child: TextField(
-                                                      cursorColor: Colors.white,
-                                                      // Gets the right controller using the helper method
-                                                      controller:
-                                                          controller
-                                                              .lclTECs[controller
-                                                              .selectedBLIndex
-                                                              .value],
-                                                      textAlignVertical:
-                                                          TextAlignVertical
-                                                              .center,
-                                                      style: const TextStyle(
-                                                        color: Colors.white,
-                                                        fontWeight:
-                                                            FontWeight.w700,
-                                                      ),
-                                                      decoration:
-                                                          const InputDecoration(
-                                                            border: InputBorder
-                                                                .none,
-                                                            isDense: true,
-                                                          ),
-                                                    ),
-                                                  ),
-                                                ),
-                                                Container(
-                                                  width:
-                                                      sizes.calculateTextWidth(
-                                                            "Feeder Vessel",
-                                                            const TextStyle(
-                                                              color:
-                                                                  Colors.white,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w700,
-                                                            ),
-                                                          ) *
-                                                          2 *
-                                                          .4 -
-                                                      5.5,
-                                                  height:
-                                                      sizes.appBarHeight * .77,
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 8.0,
-                                                      ),
-                                                  decoration: BoxDecoration(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          15,
-                                                        ),
-                                                    color: controller
-                                                        .empties
-                                                        .value
-                                                        .where(
-                                                          (
-                                                          test,
-                                                          ) => test
-                                                          .values
-                                                          .contains(
-                                                        "Lcl/Consl.-${controller.selectedBLIndex.value}",
-                                                      ),
-                                                    )
-                                                        .isNotEmpty
-                                                        ? Colors.redAccent
-                                                        : Colors.white
-                                                        .withAlpha(31),
-                                                  ),
-                                                  child: Center(
-                                                    child: TextField(
-                                                      cursorColor: Colors.white,
-                                                      // Gets the right controller using the helper method
-                                                      controller:
-                                                          controller
-                                                              .lclConsolidatedTECs[controller
-                                                              .selectedBLIndex
-                                                              .value],
-                                                      textAlignVertical:
-                                                          TextAlignVertical
-                                                              .center,
-                                                      style: const TextStyle(
-                                                        color: Colors.white,
-                                                        fontWeight:
-                                                            FontWeight.w700,
-                                                      ),
-                                                      decoration:
-                                                          const InputDecoration(
-                                                            border: InputBorder
-                                                                .none,
-                                                            isDense: true,
-                                                          ),
-                                                    ),
-                                                  ),
-                                                ),
+                                                SizedBox(height: 31),
                                               ],
                                             ),
-                                          ],
+                                          ),
                                         ),
-                                        SizedBox(height: 31),
-                                      ],
-                                    ),
-                                  ),
 
-                                  SizedBox(
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.end,
-                                      spacing: 11,
-                                      children: [
-                                        SizedBox(height: 31),
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          spacing: 11,
-                                          children: [
-                                            Text(
-                                              "Consig. Code",
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w900,
-                                                fontSize: 17,
-                                              ),
-                                            ),
-                                            Container(
-                                              width:
-                                                  sizes.calculateTextWidth(
-                                                    "Feeder Vessel",
-                                                    const TextStyle(
-                                                      color: Colors.white,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                    ),
-                                                  ) *
-                                                  2,
-                                              height: sizes.appBarHeight * .77,
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 8.0,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(15),
-                                                color:
-                                                controller
-                                                    .empties
-                                                    .value
-                                                    .where(
-                                                      (
-                                                      test,
-                                                      ) => test
-                                                      .values
-                                                      .contains(
-                                                    "Consig. Code-${controller.selectedBLIndex.value}",
-                                                  ),
-                                                )
-                                                    .isNotEmpty
-                                                    ? Colors.redAccent
-                                                    : Colors.white.withAlpha(
-                                                  31,
-                                                ),
-                                              ),
-                                              child: Center(
-                                                child: TextField(
-                                                  cursorColor: Colors.white,
-                                                  // Gets the right controller using the helper method
-                                                  controller:
-                                                      controller
-                                                          .consigneeCodeTECs[controller
-                                                          .selectedBLIndex
-                                                          .value],
-                                                  textAlignVertical:
-                                                      TextAlignVertical.center,
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.w700,
-                                                  ),
-                                                  decoration:
-                                                      const InputDecoration(
-                                                        border:
-                                                            InputBorder.none,
-                                                        isDense: true,
-                                                      ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.end,
-                                          spacing: 11,
-                                          children: [
-                                            Text(
-                                              "Consignee",
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w900,
-                                                fontSize: 17,
-                                              ),
-                                            ),
-                                            Container(
-                                              width:
-                                                  sizes.calculateTextWidth(
-                                                    "Feeder Vessel",
-                                                    const TextStyle(
-                                                      color: Colors.white,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                    ),
-                                                  ) *
-                                                  2,
-                                              height: sizes.appBarHeight * .77,
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 8.0,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(15),
-                                                color:
-                                                controller
-                                                    .empties
-                                                    .value
-                                                    .where(
-                                                      (
-                                                      test,
-                                                      ) => test
-                                                      .values
-                                                      .contains(
-                                                    "Consignee-${controller.selectedBLIndex.value}",
-                                                  ),
-                                                )
-                                                    .isNotEmpty
-                                                    ? Colors.redAccent
-                                                    : Colors.white.withAlpha(
-                                                  31,
-                                                ),
-                                              ),
-                                              child: Center(
-                                                child: TextField(
-                                                  cursorColor: Colors.white,
-                                                  // Gets the right controller using the helper method
-                                                  controller:
-                                                      controller
-                                                          .consigneeTECs[controller
-                                                          .selectedBLIndex
-                                                          .value],
-                                                  textAlignVertical:
-                                                      TextAlignVertical.center,
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.w700,
-                                                  ),
-                                                  decoration:
-                                                      const InputDecoration(
-                                                        border:
-                                                            InputBorder.none,
-                                                        isDense: true,
-                                                      ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.end,
-                                          spacing: 11,
-                                          children: [
-                                            Text(
-                                              "Con. Address",
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w900,
-                                                fontSize: 17,
-                                              ),
-                                            ),
-                                            Container(
-                                              width:
-                                                  sizes.calculateTextWidth(
-                                                    "Feeder Vessel",
-                                                    const TextStyle(
-                                                      color: Colors.white,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                    ),
-                                                  ) *
-                                                  2,
-                                              height: sizes.appBarHeight * .77,
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 8.0,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(15),
-                                                color:
-                                                controller
-                                                    .empties
-                                                    .value
-                                                    .where(
-                                                      (
-                                                      test,
-                                                      ) => test
-                                                      .values
-                                                      .contains(
-                                                    "Con. Address-${controller.selectedBLIndex.value}",
-                                                  ),
-                                                )
-                                                    .isNotEmpty
-                                                    ? Colors.redAccent
-                                                    : Colors.white.withAlpha(
-                                                  31,
-                                                ),
-                                              ),
-                                              child: Center(
-                                                child: TextField(
-                                                  cursorColor: Colors.white,
-                                                  // Gets the right controller using the helper method
-                                                  controller:
-                                                      controller
-                                                          .consigneeAddressTECs[controller
-                                                          .selectedBLIndex
-                                                          .value],
-                                                  textAlignVertical:
-                                                      TextAlignVertical.center,
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.w700,
-                                                  ),
-                                                  decoration:
-                                                      const InputDecoration(
-                                                        border:
-                                                            InputBorder.none,
-                                                        isDense: true,
-                                                      ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          spacing: 11,
-                                          children: [
-                                            Text(
-                                              "Exporter",
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w900,
-                                                fontSize: 17,
-                                              ),
-                                            ),
-                                            Container(
-                                              width:
-                                                  sizes.calculateTextWidth(
-                                                    "Feeder Vessel",
-                                                    const TextStyle(
-                                                      color: Colors.white,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                    ),
-                                                  ) *
-                                                  2,
-                                              height:
-                                                  sizes.appBarHeight * .77 * 3 +
-                                                  22,
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 8.0,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(15),
-                                                color:
-                                                controller
-                                                    .empties
-                                                    .value
-                                                    .where(
-                                                      (
-                                                      test,
-                                                      ) => test
-                                                      .values
-                                                      .contains(
-                                                    "Exporter-${controller.selectedBLIndex.value}",
-                                                  ),
-                                                )
-                                                    .isNotEmpty
-                                                    ? Colors.redAccent
-                                                    : Colors.white.withAlpha(
-                                                  31,
-                                                ),
-                                              ),
-                                              child: Center(
-                                                child: TextField(
-                                                  cursorColor: Colors.white,
-                                                  // Gets the right controller using the helper method
-                                                  controller:
-                                                      controller
-                                                          .exporterTECs[controller
-                                                          .selectedBLIndex
-                                                          .value],
-                                                  textAlignVertical:
-                                                      TextAlignVertical.center,
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.w700,
-                                                  ),
-                                                  decoration:
-                                                      const InputDecoration(
-                                                        border:
-                                                            InputBorder.none,
-                                                        isDense: true,
-                                                      ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        SizedBox(height: 31),
-                                      ],
-                                    ),
-                                  ),
-
-                                  SizedBox(
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      spacing: 0,
-                                      children: [
-                                        SizedBox(height: 31),
                                         SizedBox(
-                                          height: sizes.appBarHeight * .85,
-                                          child: Center(
-                                            child: Text(
-                                              "Remarks",
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w900,
-                                                fontSize: 17,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        Container(
-                                          width:
-                                              sizes.calculateTextWidth(
-                                                "Feeder Vessel",
-                                                const TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.w700,
-                                                ),
-                                              ) *
-                                              2,
-                                          height:
-                                              sizes.appBarHeight * .77 * 5 + 55,
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 8.0,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(
-                                              15,
-                                            ),
-                                            color:
-                                            controller
-                                                .empties
-                                                .value
-                                                .where(
-                                                  (
-                                                  test,
-                                                  ) => test
-                                                  .values
-                                                  .contains(
-                                                "BL Remarks-${controller.selectedBLIndex.value}",
-                                              ),
-                                            )
-                                                .isNotEmpty
-                                                ? Colors.redAccent
-                                                : Colors.white.withAlpha(31),
-                                          ),
-                                          child: Center(
-                                            child: TextField(
-                                              cursorColor: Colors.white,
-                                              // Gets the right controller using the helper method
-                                              controller:
-                                                  controller
-                                                      .blRemarksTECs[controller
-                                                      .selectedBLIndex
-                                                      .value],
-                                              textAlignVertical:
-                                                  TextAlignVertical.center,
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                              decoration: const InputDecoration(
-                                                border: InputBorder.none,
-                                                isDense: true,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(height: 31),
-                                      ],
-                                    ),
-                                  ),
-
-                                  SizedBox(
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.end,
-                                      spacing: 11,
-                                      children: [
-                                        SizedBox(height: 31),
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          spacing: 11,
-                                          children: [
-                                            Text(
-                                              "Notify Code",
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w900,
-                                                fontSize: 17,
-                                              ),
-                                            ),
-                                            Container(
-                                              width:
-                                                  sizes.calculateTextWidth(
-                                                    "Feeder Vessel",
-                                                    const TextStyle(
-                                                      color: Colors.white,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                    ),
-                                                  ) *
-                                                  2,
-                                              height: sizes.appBarHeight * .77,
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 8.0,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(15),
-                                                color:
-                                                controller
-                                                    .empties
-                                                    .value
-                                                    .where(
-                                                      (
-                                                      test,
-                                                      ) => test
-                                                      .values
-                                                      .contains(
-                                                    "Notify Code-${controller.selectedBLIndex.value}",
-                                                  ),
-                                                )
-                                                    .isNotEmpty
-                                                    ? Colors.redAccent
-                                                    : Colors.white.withAlpha(
-                                                  31,
-                                                ),
-                                              ),
-                                              child: Center(
-                                                child: TextField(
-                                                  cursorColor: Colors.white,
-                                                  // Gets the right controller using the helper method
-                                                  controller:
-                                                      controller
-                                                          .notifyCodeTECs[controller
-                                                          .selectedBLIndex
-                                                          .value],
-                                                  textAlignVertical:
-                                                      TextAlignVertical.center,
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.w700,
-                                                  ),
-                                                  decoration:
-                                                      const InputDecoration(
-                                                        border:
-                                                            InputBorder.none,
-                                                        isDense: true,
-                                                      ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.end,
-                                          spacing: 11,
-                                          children: [
-                                            Text(
-                                              "Notify Party",
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w900,
-                                                fontSize: 17,
-                                              ),
-                                            ),
-                                            Container(
-                                              width:
-                                                  sizes.calculateTextWidth(
-                                                    "Feeder Vessel",
-                                                    const TextStyle(
-                                                      color: Colors.white,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                    ),
-                                                  ) *
-                                                  2,
-                                              height: sizes.appBarHeight * .77,
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 8.0,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(15),
-                                                color:
-                                                controller
-                                                    .empties
-                                                    .value
-                                                    .where(
-                                                      (
-                                                      test,
-                                                      ) => test
-                                                      .values
-                                                      .contains(
-                                                    "Notify Party-${controller.selectedBLIndex.value}",
-                                                  ),
-                                                )
-                                                    .isNotEmpty
-                                                    ? Colors.redAccent
-                                                    : Colors.white.withAlpha(
-                                                  31,
-                                                ),
-                                              ),
-                                              child: Center(
-                                                child: TextField(
-                                                  cursorColor: Colors.white,
-                                                  // Gets the right controller using the helper method
-                                                  controller:
-                                                      controller
-                                                          .notifyPartyTECs[controller
-                                                          .selectedBLIndex
-                                                          .value],
-                                                  textAlignVertical:
-                                                      TextAlignVertical.center,
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.w700,
-                                                  ),
-                                                  decoration:
-                                                      const InputDecoration(
-                                                        border:
-                                                            InputBorder.none,
-                                                        isDense: true,
-                                                      ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.end,
-                                          spacing: 11,
-                                          children: [
-                                            Text(
-                                              "Notify Address",
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w900,
-                                                fontSize: 17,
-                                              ),
-                                            ),
-                                            Container(
-                                              width:
-                                                  sizes.calculateTextWidth(
-                                                    "Feeder Vessel",
-                                                    const TextStyle(
-                                                      color: Colors.white,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                    ),
-                                                  ) *
-                                                  2,
-                                              height: sizes.appBarHeight * .77,
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 8.0,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(15),
-                                                color:
-                                                controller
-                                                    .empties
-                                                    .value
-                                                    .where(
-                                                      (
-                                                      test,
-                                                      ) => test
-                                                      .values
-                                                      .contains(
-                                                    "Notify Address-${controller.selectedBLIndex.value}",
-                                                  ),
-                                                )
-                                                    .isNotEmpty
-                                                    ? Colors.redAccent
-                                                    : Colors.white.withAlpha(
-                                                  31,
-                                                ),
-                                              ),
-                                              child: Center(
-                                                child: TextField(
-                                                  cursorColor: Colors.white,
-                                                  // Gets the right controller using the helper method
-                                                  controller:
-                                                      controller
-                                                          .notifyAddressTECs[controller
-                                                          .selectedBLIndex
-                                                          .value],
-                                                  textAlignVertical:
-                                                      TextAlignVertical.center,
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.w700,
-                                                  ),
-                                                  decoration:
-                                                      const InputDecoration(
-                                                        border:
-                                                            InputBorder.none,
-                                                        isDense: true,
-                                                      ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          spacing: 11,
-                                          children: [
-                                            Text(
-                                              "Exporter Add.",
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w900,
-                                                fontSize: 17,
-                                              ),
-                                            ),
-                                            Container(
-                                              width:
-                                                  sizes.calculateTextWidth(
-                                                    "Feeder Vessel",
-                                                    const TextStyle(
-                                                      color: Colors.white,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                    ),
-                                                  ) *
-                                                  2,
-                                              height:
-                                                  sizes.appBarHeight * .77 * 3 +
-                                                  22,
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 8.0,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(15),
-                                                color:
-                                                controller
-                                                    .empties
-                                                    .value
-                                                    .where(
-                                                      (
-                                                      test,
-                                                      ) => test
-                                                      .values
-                                                      .contains(
-                                                    "Exporter Add.-${controller.selectedBLIndex.value}",
-                                                  ),
-                                                )
-                                                    .isNotEmpty
-                                                    ? Colors.redAccent
-                                                    : Colors.white.withAlpha(
-                                                  31,
-                                                ),
-                                              ),
-                                              child: Center(
-                                                child: TextField(
-                                                  cursorColor: Colors.white,
-                                                  // Gets the right controller using the helper method
-                                                  controller:
-                                                      controller
-                                                          .exporterAddressTECs[controller
-                                                          .selectedBLIndex
-                                                          .value],
-                                                  textAlignVertical:
-                                                      TextAlignVertical.center,
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.w700,
-                                                  ),
-                                                  decoration:
-                                                      const InputDecoration(
-                                                        border:
-                                                            InputBorder.none,
-                                                        isDense: true,
-                                                      ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        SizedBox(height: 31),
-                                      ],
-                                    ),
-                                  ),
-
-                                  SizedBox(
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.end,
-                                      spacing: 11,
-                                      children: [
-                                        SizedBox(height: 31),
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          spacing: 11,
-                                          children: [
-                                            Text(
-                                              "Place Unload",
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w900,
-                                                fontSize: 17,
-                                              ),
-                                            ),
-                                            Container(
-                                              width:
-                                                  sizes.calculateTextWidth(
-                                                    "Feeder Vessel",
-                                                    const TextStyle(
-                                                      color: Colors.white,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                    ),
-                                                  ) *
-                                                  2,
-                                              height: sizes.appBarHeight * .77,
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 8.0,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(15),
-                                                color:
-                                                controller
-                                                    .empties
-                                                    .value
-                                                    .where(
-                                                      (
-                                                      test,
-                                                      ) => test
-                                                      .values
-                                                      .contains(
-                                                    "Place Unload-${controller.selectedBLIndex.value}",
-                                                  ),
-                                                )
-                                                    .isNotEmpty
-                                                    ? Colors.redAccent
-                                                    : Colors.white.withAlpha(
-                                                  31,
-                                                ),
-                                              ),
-                                              child: Center(
-                                                child: TextField(
-                                                  cursorColor: Colors.white,
-                                                  // Gets the right controller using the helper method
-                                                  controller:
-                                                      controller
-                                                          .placeOfUnloadTECs[controller
-                                                          .selectedBLIndex
-                                                          .value],
-                                                  textAlignVertical:
-                                                      TextAlignVertical.center,
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.w700,
-                                                  ),
-                                                  decoration:
-                                                      const InputDecoration(
-                                                        border:
-                                                            InputBorder.none,
-                                                        isDense: true,
-                                                      ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.end,
-                                          spacing: 11,
-                                          children: [
-                                            Text(
-                                              "Bl Nature",
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w900,
-                                                fontSize: 17,
-                                              ),
-                                            ),
-                                            Container(
-                                              width:
-                                                  sizes.calculateTextWidth(
-                                                    "Feeder Vessel",
-                                                    const TextStyle(
-                                                      color: Colors.white,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                    ),
-                                                  ) *
-                                                  2,
-                                              height: sizes.appBarHeight * .77,
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 8.0,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(15),
-                                                color:
-                                                controller
-                                                    .empties
-                                                    .value
-                                                    .where(
-                                                      (
-                                                      test,
-                                                      ) => test
-                                                      .values
-                                                      .contains(
-                                                    "Bl Nature-${controller.selectedBLIndex.value}",
-                                                  ),
-                                                )
-                                                    .isNotEmpty
-                                                    ? Colors.redAccent
-                                                    : Colors.white.withAlpha(
-                                                  31,
-                                                ),
-                                              ),
-                                              child: Center(
-                                                child: TextField(
-                                                  cursorColor: Colors.white,
-                                                  // Gets the right controller using the helper method
-                                                  controller:
-                                                      controller
-                                                          .blNatureTECs[controller
-                                                          .selectedBLIndex
-                                                          .value],
-                                                  textAlignVertical:
-                                                      TextAlignVertical.center,
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.w700,
-                                                  ),
-                                                  decoration:
-                                                      const InputDecoration(
-                                                        border:
-                                                            InputBorder.none,
-                                                        isDense: true,
-                                                      ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.end,
-                                          spacing: 11,
-                                          children: [
-                                            Text(
-                                              "Bl Type Code",
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w900,
-                                                fontSize: 17,
-                                              ),
-                                            ),
-                                            GestureDetector(
-                                              onTap: () => {
-                                                controller
-                                                        .bottomSheetTag1
-                                                        .value =
-                                                    "MSB",
-                                                controller
-                                                        .bottomSheetTag2
-                                                        .value =
-                                                    "HSB",
-                                                controller
-                                                    .shouldShowBottomSheet
-                                                    .value = !controller
-                                                    .shouldShowBottomSheet
-                                                    .value,
-                                              },
-                                              child: Container(
-                                                width:
-                                                    sizes.calculateTextWidth(
-                                                      "Feeder Vessel",
-                                                      const TextStyle(
-                                                        color: Colors.white,
-                                                        fontWeight:
-                                                            FontWeight.w700,
-                                                      ),
-                                                    ) *
-                                                    2,
-                                                height:
-                                                    sizes.appBarHeight * .77,
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 11.0,
-                                                    ),
-                                                decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(15),
-                                                  color:
-                                                  controller
-                                                      .empties
-                                                      .value
-                                                      .where(
-                                                        (
-                                                        test,
-                                                        ) => test
-                                                        .values
-                                                        .contains(
-                                                      "Bl Type Code-${controller.selectedBLIndex.value}",
-                                                    ),
-                                                  )
-                                                      .isNotEmpty
-                                                      ? Colors.redAccent
-                                                      : Colors.white.withAlpha(
-                                                    31,
-                                                  ),
-                                                ),
-                                                child: Row(
-                                                  // mainAxisSize: MainAxisSize.min,
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
+                                          child: FocusTraversalGroup(
+                                            policy: OrderedTraversalPolicy(),
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.end,
+                                              spacing: 11,
+                                              children: [
+                                                SizedBox(height: 31),
+                                                Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  spacing: 11,
                                                   children: [
                                                     Text(
-                                                      controller
-                                                              .blTypeCodeTECs[controller
-                                                                  .selectedBLIndex
-                                                                  .value]
-                                                              .value
-                                                              .text
-                                                              .isEmpty
-                                                          ? "MSB"
-                                                          : controller
-                                                                .blTypeCodeTECs[controller
-                                                                    .selectedBLIndex
-                                                                    .value]
-                                                                .value
-                                                                .text,
+                                                      "Notify Code",
                                                       style: const TextStyle(
                                                         color: Colors.white,
-                                                        fontWeight:
-                                                            FontWeight.w700,
+                                                        fontWeight: FontWeight.w900,
+                                                        fontSize: 17,
                                                       ),
                                                     ),
-                                                    Icon(
-                                                      CupertinoIcons
-                                                          .arrowtriangle_down_fill,
-                                                      color: Colors.white,
-                                                      size: 17,
+                                                    Container(
+                                                      width:
+                                                          sizes.calculateTextWidth(
+                                                            "Feeder Vessel",
+                                                            const TextStyle(
+                                                              color: Colors.white,
+                                                              fontWeight:
+                                                                  FontWeight.w700,
+                                                            ),
+                                                          ) *
+                                                          2,
+                                                      height: sizes.appBarHeight * .77,
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 8.0,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        borderRadius:
+                                                            BorderRadius.circular(15),
+                                                        color:
+                                                        controller
+                                                            .empties
+                                                            .value
+                                                            .where(
+                                                              (
+                                                              test,
+                                                              ) => test
+                                                              .values
+                                                              .contains(
+                                                            "Notify Code-${controller.selectedBLIndex.value}",
+                                                          ),
+                                                        )
+                                                            .isNotEmpty
+                                                            ? Colors.redAccent
+                                                            : Colors.white.withAlpha(
+                                                          31,
+                                                        ),
+                                                      ),
+                                                      child: Center(
+                                                        child: TextField(
+                                                          cursorColor: Colors.white,
+                                                          // Gets the right controller using the helper method
+                                                          controller:
+                                                              controller
+                                                                  .notifyCodeTECs[controller
+                                                                  .selectedBLIndex
+                                                                  .value],
+                                                          textAlignVertical:
+                                                              TextAlignVertical.center,
+                                                          style: const TextStyle(
+                                                            color: Colors.white,
+                                                            fontWeight: FontWeight.w700,
+                                                          ),
+                                                          decoration:
+                                                              const InputDecoration(
+                                                                border:
+                                                                    InputBorder.none,
+                                                                isDense: true,
+                                                              ),
+                                                        ),
+                                                      ),
                                                     ),
                                                   ],
                                                 ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          spacing: 11,
-                                          children: [
-                                            Text(
-                                              "Load Port Dt.",
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w900,
-                                                fontSize: 17,
-                                              ),
-                                            ),
-                                            Container(
-                                              width:
-                                                  sizes.calculateTextWidth(
-                                                    "Feeder Vessel",
-                                                    const TextStyle(
-                                                      color: Colors.white,
-                                                      fontWeight:
-                                                          FontWeight.w700,
+                                                Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.end,
+                                                  spacing: 11,
+                                                  children: [
+                                                    Text(
+                                                      "Notify Party",
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight: FontWeight.w900,
+                                                        fontSize: 17,
+                                                      ),
                                                     ),
-                                                  ) *
-                                                  2,
-                                              height:
-                                                  sizes.appBarHeight * .77 * 3 +
-                                                  22,
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 8.0,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(15),
-                                                color:
-                                                controller
-                                                    .empties
-                                                    .value
-                                                    .where(
-                                                      (
-                                                      test,
-                                                      ) => test
-                                                      .values
-                                                      .contains(
-                                                    "Load Port Dt.-${controller.selectedBLIndex.value}",
-                                                  ),
-                                                )
-                                                    .isNotEmpty
-                                                    ? Colors.redAccent
-                                                    : Colors.white.withAlpha(
-                                                  31,
+                                                    Container(
+                                                      width:
+                                                          sizes.calculateTextWidth(
+                                                            "Feeder Vessel",
+                                                            const TextStyle(
+                                                              color: Colors.white,
+                                                              fontWeight:
+                                                                  FontWeight.w700,
+                                                            ),
+                                                          ) *
+                                                          2,
+                                                      height: sizes.appBarHeight * .77,
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 8.0,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        borderRadius:
+                                                            BorderRadius.circular(15),
+                                                        color:
+                                                        controller
+                                                            .empties
+                                                            .value
+                                                            .where(
+                                                              (
+                                                              test,
+                                                              ) => test
+                                                              .values
+                                                              .contains(
+                                                            "Notify Party-${controller.selectedBLIndex.value}",
+                                                          ),
+                                                        )
+                                                            .isNotEmpty
+                                                            ? Colors.redAccent
+                                                            : Colors.white.withAlpha(
+                                                          31,
+                                                        ),
+                                                      ),
+                                                      child: Center(
+                                                        child: TextField(
+                                                          cursorColor: Colors.white,
+                                                          // Gets the right controller using the helper method
+                                                          controller:
+                                                              controller
+                                                                  .notifyPartyTECs[controller
+                                                                  .selectedBLIndex
+                                                                  .value],
+                                                          textAlignVertical:
+                                                              TextAlignVertical.center,
+                                                          style: const TextStyle(
+                                                            color: Colors.white,
+                                                            fontWeight: FontWeight.w700,
+                                                          ),
+                                                          decoration:
+                                                              const InputDecoration(
+                                                                border:
+                                                                    InputBorder.none,
+                                                                isDense: true,
+                                                              ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
-                                              ),
-                                              child: Center(
-                                                child: TextField(
-                                                  cursorColor: Colors.white,
-                                                  // Gets the right controller using the helper method
-                                                  controller:
-                                                      controller
-                                                          .blLoadPortDtTECs[controller
-                                                          .selectedBLIndex
-                                                          .value],
-                                                  textAlignVertical:
-                                                      TextAlignVertical.center,
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.w700,
+                                                Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.end,
+                                                  spacing: 11,
+                                                  children: [
+                                                    Text(
+                                                      "Notify Address",
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight: FontWeight.w900,
+                                                        fontSize: 17,
+                                                      ),
+                                                    ),
+                                                    Container(
+                                                      width:
+                                                          sizes.calculateTextWidth(
+                                                            "Feeder Vessel",
+                                                            const TextStyle(
+                                                              color: Colors.white,
+                                                              fontWeight:
+                                                                  FontWeight.w700,
+                                                            ),
+                                                          ) *
+                                                          2,
+                                                      height: sizes.appBarHeight * .77,
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 8.0,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        borderRadius:
+                                                            BorderRadius.circular(15),
+                                                        color:
+                                                        controller
+                                                            .empties
+                                                            .value
+                                                            .where(
+                                                              (
+                                                              test,
+                                                              ) => test
+                                                              .values
+                                                              .contains(
+                                                            "Notify Address-${controller.selectedBLIndex.value}",
+                                                          ),
+                                                        )
+                                                            .isNotEmpty
+                                                            ? Colors.redAccent
+                                                            : Colors.white.withAlpha(
+                                                          31,
+                                                        ),
+                                                      ),
+                                                      child: Center(
+                                                        child: TextField(
+                                                          cursorColor: Colors.white,
+                                                          // Gets the right controller using the helper method
+                                                          controller:
+                                                              controller
+                                                                  .notifyAddressTECs[controller
+                                                                  .selectedBLIndex
+                                                                  .value],
+                                                          textAlignVertical:
+                                                              TextAlignVertical.center,
+                                                          style: const TextStyle(
+                                                            color: Colors.white,
+                                                            fontWeight: FontWeight.w700,
+                                                          ),
+                                                          decoration:
+                                                              const InputDecoration(
+                                                                border:
+                                                                    InputBorder.none,
+                                                                isDense: true,
+                                                              ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  spacing: 11,
+                                                  children: [
+                                                    Text(
+                                                      "Exporter Add.",
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight: FontWeight.w900,
+                                                        fontSize: 17,
+                                                      ),
+                                                    ),
+                                                    Container(
+                                                      width:
+                                                          sizes.calculateTextWidth(
+                                                            "Feeder Vessel",
+                                                            const TextStyle(
+                                                              color: Colors.white,
+                                                              fontWeight:
+                                                                  FontWeight.w700,
+                                                            ),
+                                                          ) *
+                                                          2,
+                                                      height:
+                                                          sizes.appBarHeight * .77 * 3 +
+                                                          22,
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 11.0,
+                                                            vertical: 11
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        borderRadius:
+                                                            BorderRadius.circular(15),
+                                                        color:
+                                                        controller
+                                                            .empties
+                                                            .value
+                                                            .where(
+                                                              (
+                                                              test,
+                                                              ) => test
+                                                              .values
+                                                              .contains(
+                                                            "Exporter Add.-${controller.selectedBLIndex.value}",
+                                                          ),
+                                                        )
+                                                            .isNotEmpty
+                                                            ? Colors.redAccent
+                                                            : Colors.white.withAlpha(
+                                                          31,
+                                                        ),
+                                                      ),
+                                                      child: Center(
+                                                        child: TextField(
+                                                          cursorColor: Colors.white,
+                                                          // Gets the right controller using the helper method
+                                                          controller:
+                                                              controller
+                                                                  .exporterAddressTECs[controller
+                                                                  .selectedBLIndex
+                                                                  .value],
+                                                          textAlignVertical:
+                                                              TextAlignVertical.center,
+                                                          style: const TextStyle(
+                                                            color: Colors.white,
+                                                            fontWeight: FontWeight.w700,
+                                                          ),
+                                                          decoration:
+                                                              const InputDecoration(
+                                                                border:
+                                                                    InputBorder.none,
+                                                                isDense: true,
+                                                              ),
+                                                          maxLines: 1000,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                SizedBox(height: 31),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+
+                                        SizedBox(
+                                          child: FocusTraversalGroup(
+                                            policy: OrderedTraversalPolicy(),
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.end,
+                                              spacing: 11,
+                                              children: [
+                                                SizedBox(height: 31),
+                                                Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  spacing: 11,
+                                                  children: [
+                                                    Text(
+                                                      "Place Unload",
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight: FontWeight.w900,
+                                                        fontSize: 17,
+                                                      ),
+                                                    ),
+                                                    Container(
+                                                      width:
+                                                          sizes.calculateTextWidth(
+                                                            "Feeder Vessel",
+                                                            const TextStyle(
+                                                              color: Colors.white,
+                                                              fontWeight:
+                                                                  FontWeight.w700,
+                                                            ),
+                                                          ) *
+                                                          2,
+                                                      height: sizes.appBarHeight * .77,
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 8.0,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        borderRadius:
+                                                            BorderRadius.circular(15),
+                                                        color:
+                                                        controller
+                                                            .empties
+                                                            .value
+                                                            .where(
+                                                              (
+                                                              test,
+                                                              ) => test
+                                                              .values
+                                                              .contains(
+                                                            "Place Unload-${controller.selectedBLIndex.value}",
+                                                          ),
+                                                        )
+                                                            .isNotEmpty
+                                                            ? Colors.redAccent
+                                                            : Colors.white.withAlpha(
+                                                          31,
+                                                        ),
+                                                      ),
+                                                      child: Center(
+                                                        child: TextField(
+                                                          cursorColor: Colors.white,
+                                                          // Gets the right controller using the helper method
+                                                          controller:
+                                                              controller
+                                                                  .placeOfUnloadTECs[controller
+                                                                  .selectedBLIndex
+                                                                  .value],
+                                                          textAlignVertical:
+                                                              TextAlignVertical.center,
+                                                          style: const TextStyle(
+                                                            color: Colors.white,
+                                                            fontWeight: FontWeight.w700,
+                                                          ),
+                                                          decoration:
+                                                              const InputDecoration(
+                                                                border:
+                                                                    InputBorder.none,
+                                                                isDense: true,
+                                                              ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.end,
+                                                  spacing: 11,
+                                                  children: [
+                                                    Text(
+                                                      "Bl Nature",
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight: FontWeight.w900,
+                                                        fontSize: 17,
+                                                      ),
+                                                    ),
+                                                    Container(
+                                                      width:
+                                                          sizes.calculateTextWidth(
+                                                            "Feeder Vessel",
+                                                            const TextStyle(
+                                                              color: Colors.white,
+                                                              fontWeight:
+                                                                  FontWeight.w700,
+                                                            ),
+                                                          ) *
+                                                          2,
+                                                      height: sizes.appBarHeight * .77,
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 8.0,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        borderRadius:
+                                                            BorderRadius.circular(15),
+                                                        color:
+                                                        controller
+                                                            .empties
+                                                            .value
+                                                            .where(
+                                                              (
+                                                              test,
+                                                              ) => test
+                                                              .values
+                                                              .contains(
+                                                            "Bl Nature-${controller.selectedBLIndex.value}",
+                                                          ),
+                                                        )
+                                                            .isNotEmpty
+                                                            ? Colors.redAccent
+                                                            : Colors.white.withAlpha(
+                                                          31,
+                                                        ),
+                                                      ),
+                                                      child: Center(
+                                                        child: TextField(
+                                                          cursorColor: Colors.white,
+                                                          // Gets the right controller using the helper method
+                                                          controller:
+                                                              controller
+                                                                  .blNatureTECs[controller
+                                                                  .selectedBLIndex
+                                                                  .value],
+                                                          textAlignVertical:
+                                                              TextAlignVertical.center,
+                                                          style: const TextStyle(
+                                                            color: Colors.white,
+                                                            fontWeight: FontWeight.w700,
+                                                          ),
+                                                          decoration:
+                                                              const InputDecoration(
+                                                                border:
+                                                                    InputBorder.none,
+                                                                isDense: true,
+                                                              ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.end,
+                                                  spacing: 11,
+                                                  children: [
+                                                    Text(
+                                                      "Bl Type Code",
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight: FontWeight.w900,
+                                                        fontSize: 17,
+                                                      ),
+                                                    ),
+                                                    GestureDetector(
+                                                      onTap: () => {
+                                                        controller
+                                                                .bottomSheetTag1
+                                                                .value =
+                                                            "MSB",
+                                                        controller
+                                                                .bottomSheetTag2
+                                                                .value =
+                                                            "HSB",
+                                                        controller
+                                                            .shouldShowBottomSheet
+                                                            .value = !controller
+                                                            .shouldShowBottomSheet
+                                                            .value,
+                                                      },
+                                                      child: Container(
+                                                        width:
+                                                            sizes.calculateTextWidth(
+                                                              "Feeder Vessel",
+                                                              const TextStyle(
+                                                                color: Colors.white,
+                                                                fontWeight:
+                                                                    FontWeight.w700,
+                                                              ),
+                                                            ) *
+                                                            2,
+                                                        height:
+                                                            sizes.appBarHeight * .77,
+                                                        padding:
+                                                            const EdgeInsets.symmetric(
+                                                              horizontal: 11.0,
+                                                            ),
+                                                        decoration: BoxDecoration(
+                                                          borderRadius:
+                                                              BorderRadius.circular(15),
+                                                          color:
+                                                          controller
+                                                              .empties
+                                                              .value
+                                                              .where(
+                                                                (
+                                                                test,
+                                                                ) => test
+                                                                .values
+                                                                .contains(
+                                                              "Bl Type Code-${controller.selectedBLIndex.value}",
+                                                            ),
+                                                          )
+                                                              .isNotEmpty
+                                                              ? Colors.redAccent
+                                                              : Colors.white.withAlpha(
+                                                            31,
+                                                          ),
+                                                        ),
+                                                        child: Row(
+                                                          // mainAxisSize: MainAxisSize.min,
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .spaceBetween,
+                                                          children: [
+                                                            Text(
+                                                              controller
+                                                                      .blTypeCodeTECs[controller
+                                                                          .selectedBLIndex
+                                                                          .value]
+                                                                      .value
+                                                                      .text
+                                                                      .isEmpty
+                                                                  ? "MSB"
+                                                                  : controller
+                                                                        .blTypeCodeTECs[controller
+                                                                            .selectedBLIndex
+                                                                            .value]
+                                                                        .value
+                                                                        .text,
+                                                              style: const TextStyle(
+                                                                color: Colors.white,
+                                                                fontWeight:
+                                                                    FontWeight.w700,
+                                                              ),
+                                                            ),
+                                                            Icon(
+                                                              CupertinoIcons
+                                                                  .arrowtriangle_down_fill,
+                                                              color: Colors.white,
+                                                              size: 17,
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  spacing: 11,
+                                                  children: [
+                                                    Text(
+                                                      "Load Port Dt.",
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight: FontWeight.w900,
+                                                        fontSize: 17,
+                                                      ),
+                                                    ),
+                                                    Container(
+                                                      width:
+                                                          sizes.calculateTextWidth(
+                                                            "Feeder Vessel",
+                                                            const TextStyle(
+                                                              color: Colors.white,
+                                                              fontWeight:
+                                                                  FontWeight.w700,
+                                                            ),
+                                                          ) *
+                                                          2,
+                                                      height:
+                                                          sizes.appBarHeight * .77 * 3 +
+                                                          22,
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 11.0,
+                                                            vertical: 11
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        borderRadius:
+                                                            BorderRadius.circular(15),
+                                                        color:
+                                                        controller
+                                                            .empties
+                                                            .value
+                                                            .where(
+                                                              (
+                                                              test,
+                                                              ) => test
+                                                              .values
+                                                              .contains(
+                                                            "Load Port Dt.-${controller.selectedBLIndex.value}",
+                                                          ),
+                                                        )
+                                                            .isNotEmpty
+                                                            ? Colors.redAccent
+                                                            : Colors.white.withAlpha(
+                                                          31,
+                                                        ),
+                                                      ),
+                                                      child: Center(
+                                                        child: TextField(
+                                                          cursorColor: Colors.white,
+                                                          // Gets the right controller using the helper method
+                                                          controller:
+                                                              controller
+                                                                  .blLoadPortDtTECs[controller
+                                                                  .selectedBLIndex
+                                                                  .value],
+                                                          textAlignVertical:
+                                                              TextAlignVertical.center,
+                                                          style: const TextStyle(
+                                                            color: Colors.white,
+                                                            fontWeight: FontWeight.w700,
+                                                          ),
+                                                          decoration:
+                                                              const InputDecoration(
+                                                                border:
+                                                                    InputBorder.none,
+                                                                isDense: true,
+                                                              ),
+                                                          maxLines: 11,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                SizedBox(height: 31),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+
+                                        SizedBox(
+                                          child: FocusTraversalGroup(
+                                            policy: OrderedTraversalPolicy(),
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              spacing: 0,
+                                              children: [
+                                                SizedBox(height: 31),
+                                                SizedBox(
+                                                  height: sizes.appBarHeight * .85,
+                                                  child: Center(
+                                                    child: Text(
+                                                      "Marks",
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight: FontWeight.w900,
+                                                        fontSize: 17,
+                                                      ),
+                                                    ),
                                                   ),
-                                                  decoration:
-                                                      const InputDecoration(
-                                                        border:
-                                                            InputBorder.none,
+                                                ),
+                                                Container(
+                                                  width:
+                                                      sizes.calculateTextWidth(
+                                                        "Feeder Vessel",
+                                                        const TextStyle(
+                                                          color: Colors.white,
+                                                          fontWeight: FontWeight.w700,
+                                                        ),
+                                                      ) *
+                                                      2,
+                                                  height:
+                                                      sizes.appBarHeight * .77 * 5 + 55,
+                                                  padding: const EdgeInsets.symmetric(
+                                                    horizontal: 11.0,
+                                                    vertical: 11
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    borderRadius: BorderRadius.circular(
+                                                      15,
+                                                    ),
+                                                    color:
+                                                    controller
+                                                        .empties
+                                                        .value
+                                                        .where(
+                                                          (
+                                                          test,
+                                                          ) => test
+                                                          .values
+                                                          .contains(
+                                                        "Marks-${controller.selectedBLIndex.value}",
+                                                      ),
+                                                    )
+                                                        .isNotEmpty
+                                                        ? Colors.redAccent
+                                                        : Colors.white.withAlpha(31),
+                                                  ),
+                                                  child: Center(
+                                                    child: TextField(
+                                                      cursorColor: Colors.white,
+                                                      // Gets the right controller using the helper method
+                                                      controller:
+                                                          controller
+                                                              .marksTECs[controller
+                                                              .selectedBLIndex
+                                                              .value],
+                                                      textAlignVertical:
+                                                          TextAlignVertical.center,
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight: FontWeight.w700,
+                                                      ),
+                                                      decoration: const InputDecoration(
+                                                        border: InputBorder.none,
                                                         isDense: true,
                                                       ),
+                                                      maxLines: 1000,
+                                                    ),
+                                                  ),
                                                 ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        SizedBox(height: 31),
-                                      ],
-                                    ),
-                                  ),
-
-                                  SizedBox(
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      spacing: 0,
-                                      children: [
-                                        SizedBox(height: 31),
-                                        SizedBox(
-                                          height: sizes.appBarHeight * .85,
-                                          child: Center(
-                                            child: Text(
-                                              "Marks",
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w900,
-                                                fontSize: 17,
-                                              ),
+                                                SizedBox(height: 31),
+                                              ],
                                             ),
                                           ),
                                         ),
-                                        Container(
-                                          width:
-                                              sizes.calculateTextWidth(
-                                                "Feeder Vessel",
-                                                const TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.w700,
-                                                ),
-                                              ) *
-                                              2,
-                                          height:
-                                              sizes.appBarHeight * .77 * 5 + 55,
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 8.0,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(
-                                              15,
-                                            ),
-                                            color:
-                                            controller
-                                                .empties
-                                                .value
-                                                .where(
-                                                  (
-                                                  test,
-                                                  ) => test
-                                                  .values
-                                                  .contains(
-                                                "Marks-${controller.selectedBLIndex.value}",
-                                              ),
-                                            )
-                                                .isNotEmpty
-                                                ? Colors.redAccent
-                                                : Colors.white.withAlpha(31),
-                                          ),
-                                          child: Center(
-                                            child: TextField(
-                                              cursorColor: Colors.white,
-                                              // Gets the right controller using the helper method
-                                              controller:
-                                                  controller
-                                                      .marksTECs[controller
-                                                      .selectedBLIndex
-                                                      .value],
-                                              textAlignVertical:
-                                                  TextAlignVertical.center,
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                              decoration: const InputDecoration(
-                                                border: InputBorder.none,
-                                                isDense: true,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(height: 31),
-                                      ],
-                                    ),
-                                  ),
 
-                                  LiquidGlass(
-                                    clipBehavior: Clip.antiAlias,
-                                    shape: const LiquidRoundedSuperellipse(
-                                      borderRadius: Radius.circular(45),
-                                    ),
-                                    settings: LiquidGlassSettings(
-                                      thickness: 20,
-                                      glassColor: const Color(0x09FFFFFF),
-                                      lightIntensity: 3,
-                                      blend: 40,
-                                      ambientStrength: .35,
-                                      lightAngle: math.pi / 7,
-                                      chromaticAberration: 0,
-                                      refractiveIndex: 1.07,
-                                    ),
-                                    child: Container(
-                                      margin: EdgeInsets.all(21),
-                                      width:
-                                          (sizes.calculateTextWidth(
-                                                "Feeder Vessel",
-                                                const TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.w700,
-                                                ),
-                                              ) *
-                                              4) +
-                                          11 +
-                                          22,
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          SizedBox(height: 11),
-                                          LiquidGlass(
-                                            clipBehavior: Clip.antiAlias,
-                                            shape:
-                                                const LiquidRoundedSuperellipse(
-                                                  borderRadius: Radius.circular(
-                                                    13,
-                                                  ),
-                                                ),
-                                            settings: LiquidGlassSettings(
-                                              thickness: 10,
-                                              glassColor: const Color(
-                                                0x09FFFFFF,
-                                              ),
-                                              lightIntensity: 3,
-                                              blend: 40,
-                                              ambientStrength: .35,
-                                              lightAngle: math.pi / 7,
-                                              chromaticAberration: 0,
-                                              refractiveIndex: 1.07,
-                                            ),
-                                            child: SizedBox(
-                                              width:
-                                                  sizes.calculateTextWidth(
-                                                    "Feeder Vessel",
-                                                    const TextStyle(
-                                                      color: Colors.white,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                    ),
-                                                  ) *
-                                                  4,
-                                              height: sizes.appBarHeight * .85,
-                                              child: Center(
-                                                child: Text(
-                                                  "Description of Goods",
-                                                  style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.w700,
-                                                    height: 0,
-                                                    letterSpacing: 0,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
+                                        LiquidGlass(
+                                          clipBehavior: Clip.antiAlias,
+                                          shape: const LiquidRoundedSuperellipse(
+                                            borderRadius: Radius.circular(45),
                                           ),
-                                          SizedBox(height: 11),
-                                          Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            spacing: 11,
-                                            children: [
-                                              Column(
-                                                mainAxisSize: MainAxisSize.min,
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                spacing: 11,
-                                                children: [
-                                                  Text(
-                                                    "Quantity",
-                                                    style: TextStyle(
-                                                      color: Colors.white,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                      height: 0,
-                                                      letterSpacing: 0,
-                                                      fontSize: 17,
+                                          settings: LiquidGlassSettings(
+                                            thickness: 20,
+                                            glassColor: const Color(0x09FFFFFF),
+                                            lightIntensity: 3,
+                                            blend: 40,
+                                            ambientStrength: .35,
+                                            lightAngle: math.pi / 7,
+                                            chromaticAberration: 0,
+                                            refractiveIndex: 1.07,
+                                          ),
+                                          child: Container(
+                                            margin: EdgeInsets.all(21),
+                                            width:
+                                                (sizes.calculateTextWidth(
+                                                      "Feeder Vessel",
+                                                      const TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight: FontWeight.w700,
+                                                      ),
+                                                    ) *
+                                                    4) +
+                                                11 +
+                                                22,
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                SizedBox(height: 11),
+                                                LiquidGlass(
+                                                  clipBehavior: Clip.antiAlias,
+                                                  shape:
+                                                      const LiquidRoundedSuperellipse(
+                                                        borderRadius: Radius.circular(
+                                                          13,
+                                                        ),
+                                                      ),
+                                                  settings: LiquidGlassSettings(
+                                                    thickness: 10,
+                                                    glassColor: const Color(
+                                                      0x09FFFFFF,
                                                     ),
+                                                    lightIntensity: 3,
+                                                    blend: 40,
+                                                    ambientStrength: .35,
+                                                    lightAngle: math.pi / 7,
+                                                    chromaticAberration: 0,
+                                                    refractiveIndex: 1.07,
                                                   ),
-
-                                                  Container(
+                                                  child: SizedBox(
                                                     width:
-                                                        sizes
-                                                            .calculateTextWidth(
-                                                              "Feeder Vessel",
-                                                              const TextStyle(
-                                                                color: Colors
-                                                                    .white,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w700,
-                                                              ),
-                                                            ) *
-                                                        2,
-                                                    height:
-                                                        (sizes.appBarHeight *
-                                                                .77 *
-                                                                6 +
-                                                            55) -
-                                                        sizes.appBarHeight *
-                                                            .85 *
-                                                            3 -
-                                                        11 -
-                                                        42 -
-                                                        11,
-                                                    padding:
-                                                        const EdgeInsets.symmetric(
-                                                          horizontal: 8.0,
-                                                        ),
-                                                    decoration: BoxDecoration(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            25,
+                                                        sizes.calculateTextWidth(
+                                                          "Feeder Vessel",
+                                                          const TextStyle(
+                                                            color: Colors.white,
+                                                            fontWeight:
+                                                                FontWeight.w700,
                                                           ),
-                                                      color:
-                                                      controller
-                                                          .empties
-                                                          .value
-                                                          .where(
-                                                            (
-                                                            test,
-                                                            ) => test
-                                                            .values
-                                                            .contains(
-                                                          "Quantity-${controller.selectedBLIndex.value}",
-                                                        ),
-                                                      )
-                                                          .isNotEmpty
-                                                          ? Colors.redAccent
-                                                          : Colors.white
-                                                          .withAlpha(31),
-                                                    ),
+                                                        ) *
+                                                        4,
+                                                    height: sizes.appBarHeight * .85,
                                                     child: Center(
-                                                      child: TextField(
-                                                        cursorColor:
-                                                            Colors.white,
-                                                        // Gets the right controller using the helper method
-                                                        // controller: controller.getControllerForCell(heading, rowIndex),
-                                                        textAlignVertical:
-                                                            TextAlignVertical
-                                                                .center,
-                                                        style: const TextStyle(
+                                                      child: Text(
+                                                        "Description of Goods",
+                                                        style: TextStyle(
                                                           color: Colors.white,
-                                                          fontWeight:
-                                                              FontWeight.w700,
+                                                          fontWeight: FontWeight.w700,
+                                                          height: 0,
+                                                          letterSpacing: 0,
                                                         ),
-                                                        decoration:
-                                                            const InputDecoration(
-                                                              border:
-                                                                  InputBorder
-                                                                      .none,
-                                                              isDense: true,
-                                                            ),
                                                       ),
                                                     ),
                                                   ),
-
-                                                  Container(
-                                                    width:
-                                                        sizes
-                                                            .calculateTextWidth(
-                                                              "Feeder Vessel",
-                                                              const TextStyle(
-                                                                color: Colors
-                                                                    .white,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w700,
-                                                              ),
-                                                            ) *
-                                                        2,
-                                                    height:
-                                                        (sizes.appBarHeight *
-                                                        .85),
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                          bottom: 11,
-                                                        ),
-                                                    decoration: BoxDecoration(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            15,
-                                                          ),
-                                                      color:
-                                                      controller
-                                                          .empties
-                                                          .value
-                                                          .where(
-                                                            (
-                                                            test,
-                                                            ) => test
-                                                            .values
-                                                            .contains(
-                                                          "Quantity2-${controller.selectedBLIndex.value}",
-                                                        ),
-                                                      )
-                                                          .isNotEmpty
-                                                          ? Colors.redAccent
-                                                          : Colors.white
-                                                          .withAlpha(31),
-                                                    ),
-                                                    child: Center(
-                                                      child: TextField(
-                                                        cursorColor:
-                                                            Colors.white,
-                                                        // Gets the right controller using the helper method
-                                                        // controller: controller.getControllerForCell(heading, rowIndex),
-                                                        textAlignVertical:
-                                                            TextAlignVertical
-                                                                .center,
-                                                        style: const TextStyle(
-                                                          color: Colors.white,
-                                                          fontWeight:
-                                                              FontWeight.w700,
-                                                        ),
-                                                        decoration:
-                                                            const InputDecoration(
-                                                              border:
-                                                                  InputBorder
-                                                                      .none,
-                                                              isDense: true,
-                                                            ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                              Column(
-                                                mainAxisSize: MainAxisSize.min,
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                spacing: 11,
-                                                children: [
-                                                  Text(
-                                                    "Commodity",
-                                                    style: TextStyle(
-                                                      color: Colors.white,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                      height: 0,
-                                                      letterSpacing: 0,
-                                                      fontSize: 17,
-                                                    ),
-                                                  ),
-
-                                                  Container(
-                                                    width:
-                                                        sizes
-                                                            .calculateTextWidth(
-                                                              "Feeder Vessel",
-                                                              const TextStyle(
-                                                                color: Colors
-                                                                    .white,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w700,
-                                                              ),
-                                                            ) *
-                                                        2,
-                                                    height:
-                                                        (sizes.appBarHeight *
-                                                                .77 *
-                                                                6 +
-                                                            55) -
-                                                        sizes.appBarHeight *
-                                                            .85 *
-                                                            3 -
-                                                        11 -
-                                                        42 -
-                                                        11,
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                          bottom: 11,
-                                                        ),
-                                                    decoration: BoxDecoration(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            25,
-                                                          ),
-                                                      color:
-                                                      controller
-                                                          .empties
-                                                          .value
-                                                          .where(
-                                                            (
-                                                            test,
-                                                            ) => test
-                                                            .values
-                                                            .contains(
-                                                          "Commodity-${controller.selectedBLIndex.value}",
-                                                        ),
-                                                      )
-                                                          .isNotEmpty
-                                                          ? Colors.redAccent
-                                                          : Colors.white
-                                                          .withAlpha(31),
-                                                    ),
-                                                    child: Center(
-                                                      child: TextField(
-                                                        cursorColor:
-                                                            Colors.white,
-                                                        // Gets the right controller using the helper method
-                                                        controller: controller.commodityTECs[controller.selectedBLIndex.value],
-                                                        textAlignVertical:
-                                                            TextAlignVertical
-                                                                .center,
-                                                        style: const TextStyle(
-                                                          color: Colors.white,
-                                                          fontWeight:
-                                                              FontWeight.w700,
-                                                        ),
-                                                        decoration:
-                                                            const InputDecoration(
-                                                              border:
-                                                                  InputBorder
-                                                                      .none,
-                                                              isDense: true,
-                                                            ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  SizedBox(
-                                                    width:
-                                                        sizes
-                                                            .calculateTextWidth(
-                                                              "Feeder Vessel",
-                                                              const TextStyle(
-                                                                color: Colors
-                                                                    .white,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w700,
-                                                              ),
-                                                            ) *
-                                                        2,
-                                                    height:
-                                                        (sizes.appBarHeight *
-                                                        .85),
-                                                    child: Row(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
+                                                ),
+                                                SizedBox(height: 11),
+                                                Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  spacing: 11,
+                                                  children: [
+                                                    Column(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment.start,
                                                       spacing: 11,
                                                       children: [
                                                         Text(
-                                                          "Dg",
+                                                          "Quantity",
                                                           style: TextStyle(
+                                                            color: Colors.white,
                                                             fontWeight:
                                                                 FontWeight.w700,
-                                                            color: Colors.white,
-                                                            fontSize: 17,
                                                             height: 0,
                                                             letterSpacing: 0,
+                                                            fontSize: 17,
                                                           ),
                                                         ),
-                                                        Expanded(
-                                                          child: GestureDetector(
-                                                            onTap: () => {
-                                                              controller
-                                                                      .bottomSheetTag1
-                                                                      .value =
-                                                                  "Yes",
-                                                              controller
-                                                                      .bottomSheetTag2
-                                                                      .value =
-                                                                  "No",
-                                                              controller
-                                                                  .shouldShowBottomSheet
-                                                                  .value = !controller
-                                                                  .shouldShowBottomSheet
-                                                                  .value,
-                                                            },
-                                                            child: Container(
-                                                              height:
-                                                                  (sizes
-                                                                      .appBarHeight *
-                                                                  .85),
-                                                              decoration: BoxDecoration(
-                                                                borderRadius:
-                                                                    BorderRadius.circular(
-                                                                      15,
-                                                                    ),
-                                                                color:
-                                                                controller
-                                                                    .empties
-                                                                    .value
-                                                                    .where(
-                                                                      (
-                                                                      test,
-                                                                      ) => test
-                                                                      .values
-                                                                      .contains(
-                                                                    "Dg-${controller.selectedBLIndex.value}",
-                                                                  ),
-                                                                )
-                                                                    .isNotEmpty
-                                                                    ? Colors.redAccent
-                                                                    : Colors
-                                                                    .white
-                                                                    .withAlpha(
-                                                                      31,
-                                                                    ),
-                                                              ),
-                                                              padding:
-                                                                  EdgeInsets.symmetric(
-                                                                    horizontal:
-                                                                        11,
-                                                                  ),
-                                                              child: Row(
-                                                                // mainAxisSize: MainAxisSize.min,
-                                                                mainAxisAlignment:
-                                                                    MainAxisAlignment
-                                                                        .spaceBetween,
-                                                                children: [
-                                                                  Text(
-                                                                    controller
-                                                                            .dgStatusTECs[controller.selectedBLIndex.value]
-                                                                            .value
-                                                                            .text
-                                                                            .isEmpty
-                                                                        ? "No"
-                                                                        : controller
-                                                                              .dgStatusTECs[controller.selectedBLIndex.value]
-                                                                              .value
-                                                                              .text,
-                                                                    style: const TextStyle(
+
+                                                        Container(
+                                                          width:
+                                                              sizes
+                                                                  .calculateTextWidth(
+                                                                    "Feeder Vessel",
+                                                                    const TextStyle(
                                                                       color: Colors
                                                                           .white,
                                                                       fontWeight:
                                                                           FontWeight
                                                                               .w700,
                                                                     ),
-                                                                  ),
-                                                                  Icon(
-                                                                    CupertinoIcons
-                                                                        .arrowtriangle_down_fill,
-                                                                    color: Colors
-                                                                        .white,
-                                                                    size: 17,
-                                                                  ),
-                                                                ],
+                                                                  ) *
+                                                              2,
+                                                          height:
+                                                              (sizes.appBarHeight *
+                                                                      .77 *
+                                                                      6 +
+                                                                  55) -
+                                                              sizes.appBarHeight *
+                                                                  .85 *
+                                                                  3 -
+                                                              11 -
+                                                              42 -
+                                                              11,
+                                                          padding:
+                                                              const EdgeInsets.symmetric(
+                                                                horizontal: 11.0,
+                                                                vertical: 11
                                                               ),
+                                                          decoration: BoxDecoration(
+                                                            borderRadius:
+                                                                BorderRadius.circular(
+                                                                  25,
+                                                                ),
+                                                            color:
+                                                            controller
+                                                                .empties
+                                                                .value
+                                                                .where(
+                                                                  (
+                                                                  test,
+                                                                  ) => test
+                                                                  .values
+                                                                  .contains(
+                                                                "Quantity-${controller.selectedBLIndex.value}",
+                                                              ),
+                                                            )
+                                                                .isNotEmpty
+                                                                ? Colors.redAccent
+                                                                : Colors.white
+                                                                .withAlpha(31),
+                                                          ),
+                                                          child: Center(
+                                                            child: TextField(
+                                                              cursorColor:
+                                                                  Colors.white,
+                                                              controller: controller.quantityTECs[controller.selectedBLIndex.value],
+                                                              // Gets the right controller using the helper method
+                                                              // controller: controller.getControllerForCell(heading, rowIndex),
+                                                              textAlignVertical:
+                                                                  TextAlignVertical
+                                                                      .center,
+                                                              style: const TextStyle(
+                                                                color: Colors.white,
+                                                                fontWeight:
+                                                                    FontWeight.w700,
+                                                              ),
+                                                              decoration:
+                                                                  const InputDecoration(
+                                                                    border:
+                                                                        InputBorder
+                                                                            .none,
+                                                                    isDense: true,
+                                                                  ),
+                                                              maxLines: 1000,
+                                                            ),
+                                                          ),
+                                                        ),
+
+                                                        Container(
+                                                          width:
+                                                              sizes
+                                                                  .calculateTextWidth(
+                                                                    "Feeder Vessel",
+                                                                    const TextStyle(
+                                                                      color: Colors
+                                                                          .white,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w700,
+                                                                    ),
+                                                                  ) *
+                                                              2,
+                                                          height:
+                                                              (sizes.appBarHeight *
+                                                              .85),
+                                                          padding:
+                                                              const EdgeInsets.only(
+                                                                bottom: 11,
+                                                              ),
+                                                          decoration: BoxDecoration(
+                                                            borderRadius:
+                                                                BorderRadius.circular(
+                                                                  15,
+                                                                ),
+                                                            color:
+                                                            controller
+                                                                .empties
+                                                                .value
+                                                                .where(
+                                                                  (
+                                                                  test,
+                                                                  ) => test
+                                                                  .values
+                                                                  .contains(
+                                                                "Quantity2-${controller.selectedBLIndex.value}",
+                                                              ),
+                                                            )
+                                                                .isNotEmpty
+                                                                ? Colors.redAccent
+                                                                : Colors.white
+                                                                .withAlpha(31),
+                                                          ),
+                                                          child: Center(
+                                                            child: TextField(
+                                                              cursorColor:
+                                                                  Colors.white,
+                                                              controller: controller.quantity2TECs[controller.selectedBLIndex.value],
+                                                              // Gets the right controller using the helper method
+                                                              // controller: controller.getControllerForCell(heading, rowIndex),
+                                                              textAlignVertical:
+                                                                  TextAlignVertical
+                                                                      .center,
+                                                              style: const TextStyle(
+                                                                color: Colors.white,
+                                                                fontWeight:
+                                                                    FontWeight.w700,
+                                                              ),
+                                                              decoration:
+                                                                  const InputDecoration(
+                                                                    border:
+                                                                        InputBorder
+                                                                            .none,
+                                                                    isDense: true,
+                                                                  ),
                                                             ),
                                                           ),
                                                         ),
                                                       ],
                                                     ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                          SizedBox(height: 11),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
+                                                    Column(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment.start,
+                                                      spacing: 11,
+                                                      children: [
+                                                        Text(
+                                                          "Commodity",
+                                                          style: TextStyle(
+                                                            color: Colors.white,
+                                                            fontWeight:
+                                                                FontWeight.w700,
+                                                            height: 0,
+                                                            letterSpacing: 0,
+                                                            fontSize: 17,
+                                                          ),
+                                                        ),
 
-                                  SizedBox(width: 62),
-                                ],
+                                                        Container(
+                                                          width:
+                                                              sizes
+                                                                  .calculateTextWidth(
+                                                                    "Feeder Vessel",
+                                                                    const TextStyle(
+                                                                      color: Colors
+                                                                          .white,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w700,
+                                                                    ),
+                                                                  ) *
+                                                              2,
+                                                          height:
+                                                              (sizes.appBarHeight *
+                                                                      .77 *
+                                                                      6 +
+                                                                  55) -
+                                                              sizes.appBarHeight *
+                                                                  .85 *
+                                                                  3 -
+                                                              11 -
+                                                              42 -
+                                                              11,
+                                                          padding:
+                                                              const EdgeInsets.symmetric(
+                                                                horizontal: 11,
+                                                                vertical: 11
+                                                              ),
+                                                          decoration: BoxDecoration(
+                                                            borderRadius:
+                                                                BorderRadius.circular(
+                                                                  25,
+                                                                ),
+                                                            color:
+                                                            controller
+                                                                .empties
+                                                                .value
+                                                                .where(
+                                                                  (
+                                                                  test,
+                                                                  ) => test
+                                                                  .values
+                                                                  .contains(
+                                                                "Commodity-${controller.selectedBLIndex.value}",
+                                                              ),
+                                                            )
+                                                                .isNotEmpty
+                                                                ? Colors.redAccent
+                                                                : Colors.white
+                                                                .withAlpha(31),
+                                                          ),
+                                                          child: Center(
+                                                            child: TextField(
+                                                              cursorColor:
+                                                                  Colors.white,
+                                                              // Gets the right controller using the helper method
+                                                              controller: controller.commodityTECs[controller.selectedBLIndex.value],
+                                                              textAlignVertical:
+                                                                  TextAlignVertical
+                                                                      .center,
+                                                              style: const TextStyle(
+                                                                color: Colors.white,
+                                                                fontWeight:
+                                                                    FontWeight.w700,
+                                                              ),
+                                                              decoration:
+                                                                  const InputDecoration(
+                                                                    border:
+                                                                        InputBorder
+                                                                            .none,
+                                                                    isDense: true,
+                                                                  ),
+                                                              maxLines: 1000,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        SizedBox(
+                                                          width:
+                                                              sizes
+                                                                  .calculateTextWidth(
+                                                                    "Feeder Vessel",
+                                                                    const TextStyle(
+                                                                      color: Colors
+                                                                          .white,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w700,
+                                                                    ),
+                                                                  ) *
+                                                              2,
+                                                          height:
+                                                              (sizes.appBarHeight *
+                                                              .85),
+                                                          child: Row(
+                                                            mainAxisSize:
+                                                                MainAxisSize.min,
+                                                            spacing: 11,
+                                                            children: [
+                                                              Text(
+                                                                "Dg",
+                                                                style: TextStyle(
+                                                                  fontWeight:
+                                                                      FontWeight.w700,
+                                                                  color: Colors.white,
+                                                                  fontSize: 17,
+                                                                  height: 0,
+                                                                  letterSpacing: 0,
+                                                                ),
+                                                              ),
+                                                              Expanded(
+                                                                child: GestureDetector(
+                                                                  onTap: () => {
+                                                                    controller
+                                                                            .bottomSheetTag1
+                                                                            .value =
+                                                                        "YES",
+                                                                    controller
+                                                                            .bottomSheetTag2
+                                                                            .value =
+                                                                        "NO",
+                                                                    controller.selectedHeading.value =
+                                                                        "Dg",
+                                                                    controller
+                                                                        .shouldShowBottomSheet
+                                                                        .value = !controller
+                                                                        .shouldShowBottomSheet
+                                                                        .value,
+                                                                  },
+                                                                  child: Container(
+                                                                    height:
+                                                                        (sizes
+                                                                            .appBarHeight *
+                                                                        .85),
+                                                                    decoration: BoxDecoration(
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                            15,
+                                                                          ),
+                                                                      color:
+                                                                      controller
+                                                                          .empties
+                                                                          .value
+                                                                          .where(
+                                                                            (
+                                                                            test,
+                                                                            ) => test
+                                                                            .values
+                                                                            .contains(
+                                                                          "Dg-${controller.selectedBLIndex.value}",
+                                                                        ),
+                                                                      )
+                                                                          .isNotEmpty
+                                                                          ? Colors.redAccent
+                                                                          : Colors
+                                                                          .white
+                                                                          .withAlpha(
+                                                                            31,
+                                                                          ),
+                                                                    ),
+                                                                    padding:
+                                                                        EdgeInsets.symmetric(
+                                                                          horizontal:
+                                                                              11,
+                                                                        ),
+                                                                    child: Row(
+                                                                      // mainAxisSize: MainAxisSize.min,
+                                                                      mainAxisAlignment:
+                                                                          MainAxisAlignment
+                                                                              .spaceBetween,
+                                                                      children: [
+                                                                        Text(
+                                                                          controller
+                                                                                  .dgStatusTECs[controller.selectedBLIndex.value]
+                                                                                  .value
+                                                                                  .text
+                                                                                  .isEmpty
+                                                                              ? "NO"
+                                                                              : controller
+                                                                                    .dgStatusTECs[controller.selectedBLIndex.value]
+                                                                                    .value
+                                                                                    .text,
+                                                                          style: const TextStyle(
+                                                                            color: Colors
+                                                                                .white,
+                                                                            fontWeight:
+                                                                                FontWeight
+                                                                                    .w700,
+                                                                          ),
+                                                                        ),
+                                                                        Icon(
+                                                                          CupertinoIcons
+                                                                              .arrowtriangle_down_fill,
+                                                                          color: Colors
+                                                                              .white,
+                                                                          size: 17,
+                                                                        ),
+                                                                      ],
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
+                                                SizedBox(height: 11),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+
+                                        SizedBox(width: 62),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
                         ),
-                        Text(
-                          "   Bank Information",
-                          style: TextStyle(
-                            color: Colors.white54,
-                            fontWeight: FontWeight.w100,
-                            height: 0,
-                            fontSize: 31,
+                        Visibility(
+                          visible: false,
+                          child: Text(
+                            "   Bank Information",
+                            style: TextStyle(
+                              color: Colors.white54,
+                              fontWeight: FontWeight.w100,
+                              height: 0,
+                              fontSize: 31,
+                            ),
                           ),
                         ),
-                        SizedBox(
-                          width: sizes.width * .89,
-                          child: Center(
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                mainAxisSize: MainAxisSize.max,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                spacing: 17,
-                                children: [
-                                  Container(
-                                    height: sizes.appBarHeight * .85,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(17),
-                                      color: Colors.white,
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        "      New Record      ",
-                                        style: TextStyle(
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.w700,
-                                          height: 0,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  GestureDetector(
-                                    onTap: () {
-                                      //eee
-                                      var years = getDataOffOfTECs(
-                                        controller.yearTECs,
-                                      );
-                                      var feederVesselNames = getDataOffOfTECs(
-                                        controller.feederVesselNameTECs,
-                                      );
-                                      var fevRotationNos = getDataOffOfTECs(
-                                        controller.fevRotationNoTECs,
-                                      );
-                                      var fvVoys = getDataOffOfTECs(
-                                        controller.fvVoyTECs,
-                                      );
-                                      var netMTs = getDataOffOfTECs(
-                                        controller.netMTTECs,
-                                      );
-                                      var departureDates = getDataOffOfTECs(
-                                        controller.departureDateTECs,
-                                      );
-                                      var depCodes = getDataOffOfTECs(
-                                        controller.depCodeTECs,
-                                      );
-                                      var flagNames = getDataOffOfTECs(
-                                        controller.flagNameTECs,
-                                      );
-                                      var arrivalDates = getDataOffOfTECs(
-                                        controller.arrivalDateTECs,
-                                      );
-                                      var berthingDates = getDataOffOfTECs(
-                                        controller.berthingDateTECs,
-                                      );
-                                      var portOfShipments = getDataOffOfTECs(
-                                        controller.portOfShipmentTECs,
-                                      );
-                                      var flags = getDataOffOfTECs(
-                                        controller.flagTECs,
-                                      );
-                                      var lineNos = getDataOffOf2DTECs(
-                                        controller.lineNoTECs,
-                                      );
-                                      var contPrefixes = getDataOffOf2DTECs(
-                                        controller.contPrefixTECs,
-                                      );
-                                      var contNos = getDataOffOf2DTECs(
-                                        controller.contNoTECs,
-                                      );
-                                      var sizes = getDataOffOf2DTECs(
-                                        controller.sizeTECs,
-                                      );
-                                      var contTypes = getDataOffOf2DTECs(
-                                        controller.contTypeTECs,
-                                      );
-                                      var isoCodes = getDataOffOf2DTECs(
-                                        controller.isoCodeTECs,
-                                      );
-                                      var qtys = getDataOffOf2DTECs(
-                                        controller.qtyTECs,
-                                      );
-                                      var uoms = getDataOffOf2DTECs(
-                                        controller.uomTECs,
-                                      );
-                                      var weightKgms = getDataOffOf2DTECs(
-                                        controller.weightKgmTECs,
-                                      );
-                                      var contVolumes = getDataOffOf2DTECs(
-                                        controller.contVolumeTECs,
-                                      );
-                                      var vgmQtys = getDataOffOf2DTECs(
-                                        controller.vgmQtyTECs,
-                                      );
-                                      var cbms = getDataOffOf2DTECs(
-                                        controller.cbmTECs,
-                                      );
-                                      var sealNos = getDataOffOf2DTECs(
-                                        controller.sealNoTECs,
-                                      );
-                                      var imcos = getDataOffOf2DTECs(
-                                        controller.imcoTECs,
-                                      );
-                                      var uns = getDataOffOf2DTECs(
-                                        controller.unTECs,
-                                      );
-                                      var statuses = getDataOffOf2DTECs(
-                                        controller.statusTECs,
-                                      );
-                                      var loadPortDts = getDataOffOf2DTECs(
-                                        controller.loadPortDtTECs,
-                                      );
-                                      var remarks = getDataOffOf2DTECs(
-                                        controller.remarksTECs,
-                                      );
-                                      var parts = getDataOffOf2DTECs(
-                                        controller.partTECs,
-                                      );
-                                      var offDocks = getDataOffOf2DTECs(
-                                        controller.offDockTECs,
-                                      );
-                                      var commoCodes = getDataOffOf2DTECs(
-                                        controller.commoCodeTECs,
-                                      );
-                                      var perishables = getDataOffOf2DTECs(
-                                        controller.perishableTECs,
-                                      );
-                                      var portOfLanding = getDataOffOfTECs(
-                                        controller.portOfLandingTECs,
-                                      );
-                                      var slNo = getDataOffOfTECs(
-                                        controller.slNoTECs,
-                                      );
-                                      var blLineNo = getDataOffOfTECs(
-                                        controller.blLineNoTECs,
-                                      );
-                                      var blNo = getDataOffOfTECs(
-                                        controller.blNoTECs,
-                                      );
-                                      var fcl = getDataOffOfTECs(
-                                        controller.fclTECs,
-                                      );
-                                      var fclQty = getDataOffOfTECs(
-                                        controller.fclQtyTECs,
-                                      );
-                                      var lcl = getDataOffOfTECs(
-                                        controller.lclTECs,
-                                      );
-                                      var lclConsolidated = getDataOffOfTECs(
-                                        controller.lclConsolidatedTECs,
-                                      );
-                                      var consigneeCode = getDataOffOfTECs(
-                                        controller.consigneeCodeTECs,
-                                      );
-                                      var consignee = getDataOffOfTECs(
-                                        controller.consigneeTECs,
-                                      );
-                                      var consigneeAddress = getDataOffOfTECs(
-                                        controller.consigneeAddressTECs,
-                                      );
-                                      var exporter = getDataOffOfTECs(
-                                        controller.exporterTECs,
-                                      );
-                                      var blRemarks = getDataOffOfTECs(
-                                        controller.blRemarksTECs,
-                                      );
-                                      var notifyCode = getDataOffOfTECs(
-                                        controller.notifyCodeTECs,
-                                      );
-                                      var notifyParty = getDataOffOfTECs(
-                                        controller.notifyPartyTECs,
-                                      );
-                                      var notifyAddress = getDataOffOfTECs(
-                                        controller.notifyAddressTECs,
-                                      );
-                                      var exporterAddress = getDataOffOfTECs(
-                                        controller.exporterAddressTECs,
-                                      );
-                                      var placeOfUnload = getDataOffOfTECs(
-                                        controller.placeOfUnloadTECs,
-                                      );
-                                      var blNature = getDataOffOfTECs(
-                                        controller.blNatureTECs,
-                                      );
-                                      var blTypeCode = getDataOffOfTECs(
-                                        controller.blTypeCodeTECs,
-                                      );
-                                      var blLoadPortDt = getDataOffOfTECs(
-                                        controller.blLoadPortDtTECs,
-                                      );
-                                      var marks = getDataOffOfTECs(
-                                        controller.marksTECs,
-                                      );
-                                      var quantity = getDataOffOfTECs(
-                                        controller.quantityTECs,
-                                      );
-                                      var quantity2 = getDataOffOfTECs(
-                                        controller.quantity2TECs,
-                                      );
-                                      var commodity = getDataOffOfTECs(
-                                        controller.commodityTECs,
-                                      );
-                                      var dgStatus = getDataOffOfTECs(
-                                        controller.dgStatusTECs,
-                                      );
-                                      var slNos = getDataOffOfTECs(
-                                        controller.sl_NoTECs,
-                                      );
-                                      var bankAddressForNotice = getDataOffOfTECs(
-                                        controller.bankAddressForNoticeToConsigneeTECs,
-                                      );
-
-                                      controller.empties.clear();
-
-                                      controller.assignEmpties("Year", years);
-                                      controller.assignEmpties(
-                                        "Feeder Vessel Name",
-                                        feederVesselNames,
-                                      );
-                                      controller.assignEmpties(
-                                        "Fe.V Rotation No.",
-                                        fevRotationNos,
-                                      );
-                                      controller.assignEmpties(
-                                        "F.V. Voy",
-                                        fvVoys,
-                                      );
-                                      controller.assignEmpties("Net MT", netMTs);
-                                      controller.assignEmpties(
-                                        "Departure Date",
-                                        departureDates,
-                                      );
-                                      controller.assignEmpties(
-                                        "Dep. Code",
-                                        depCodes,
-                                      );
-                                      controller.assignEmpties(
-                                        "Flag Name",
-                                        flagNames,
-                                      );
-                                      controller.assignEmpties(
-                                        "Arrival Date",
-                                        arrivalDates,
-                                      );
-                                      controller.assignEmpties(
-                                        "Berthing Date",
-                                        berthingDates,
-                                      );
-                                      controller.assignEmpties(
-                                        "Port of Shipment",
-                                        portOfShipments,
-                                      );
-                                      controller.assignEmpties(
-                                        "Sl No.",
-                                        slNo,
-                                      );
-                                      controller.assignEmpties("CTG/ICD", portOfLanding);
-                                      controller.assignEmpties("Flag", flags);
-                                      controller.assignEmpties("SL_NO", slNos);
-                                      controller.assignEmpties("Line No.", blLineNo);
-                                      controller.assignEmpties("Bl No.", blNo);
-                                      controller.assignEmpties("Fcl", fcl);
-                                      controller.assignEmpties("Fcl/Qty", fclQty);
-                                      controller.assignEmpties("Lcl", lcl);
-                                      controller.assignEmpties("Lcl/Consl.", lclConsolidated);
-                                      controller.assignEmpties("Consig. Code", consigneeCode);
-                                      controller.assignEmpties("Consignee", consignee);
-                                      controller.assignEmpties("Con. Address", consigneeAddress);
-                                      controller.assignEmpties("Exporter", exporter);
-                                      controller.assignEmpties("BL Remarks", blRemarks);
-                                      controller.assignEmpties("Notify Code", notifyCode);
-                                      controller.assignEmpties("Notify Party", notifyParty);
-                                      controller.assignEmpties("Notify Address", notifyAddress);
-                                      controller.assignEmpties("Exporter Add.", exporterAddress);
-                                      controller.assignEmpties("Place Unload", placeOfUnload);
-                                      controller.assignEmpties("Bl Nature", blNature);
-                                      controller.assignEmpties("Bl Type Code", blTypeCode);
-                                      controller.assignEmpties("Load Port Dt.", blLoadPortDt);
-                                      controller.assignEmpties("Marks", marks);
-                                      controller.assignEmpties("Quantity", quantity);
-                                      controller.assignEmpties("Quantity2", quantity2);
-                                      controller.assignEmpties("Commodity", commodity);
-                                      controller.assignEmpties("Dg", dgStatus);
-                                      controller.assignEmpties("Bank address for notice to consignee", bankAddressForNotice);
-
-                                      for(int i = 0; i < blNo.length; i++) {
-                                        controller.assignEmpties("Line No.${controller.selectedBLIndex.value}", lineNos[i]);
-                                        controller.assignEmpties("Cont. Prefix${controller.selectedBLIndex.value}", contPrefixes[i]);
-                                        controller.assignEmpties("Cont. No.${controller.selectedBLIndex.value}", contNos[i]);
-                                        controller.assignEmpties("Size${controller.selectedBLIndex.value}", sizes[i]);
-                                        controller.assignEmpties("Cont. Type${controller.selectedBLIndex.value}", contTypes[i]);
-                                        controller.assignEmpties("ISO Code${controller.selectedBLIndex.value}", isoCodes[i]);
-                                        controller.assignEmpties("Qty${controller.selectedBLIndex.value}", qtys[i]);
-                                        controller.assignEmpties("Uom${controller.selectedBLIndex.value}", uoms[i]);
-                                        controller.assignEmpties("Weight (KGM)${controller.selectedBLIndex.value}", weightKgms[i]);
-                                        controller.assignEmpties("Cont. Volume${controller.selectedBLIndex.value}", contVolumes[i]);
-                                        controller.assignEmpties("VGM Qty${controller.selectedBLIndex.value}", vgmQtys[i]);
-                                        controller.assignEmpties("CBM${controller.selectedBLIndex.value}", cbms[i]);
-                                        controller.assignEmpties("Seal No.${controller.selectedBLIndex.value}", sealNos[i]);
-                                        controller.assignEmpties("IMCO${controller.selectedBLIndex.value}", imcos[i]);
-                                        controller.assignEmpties("Un${controller.selectedBLIndex.value}", uns[i]);
-                                        controller.assignEmpties("Status${controller.selectedBLIndex.value}", statuses[i]);
-                                        controller.assignEmpties("Load Port Dt${controller.selectedBLIndex.value}", loadPortDts[i]);
-                                        controller.assignEmpties("Remarks${controller.selectedBLIndex.value}", remarks[i]);
-                                        controller.assignEmpties("Part${controller.selectedBLIndex.value}", parts[i]);
-                                        controller.assignEmpties("Line No.${controller.selectedBLIndex.value}", lineNos[i]);
-                                        controller.assignEmpties("Off Dock${controller.selectedBLIndex.value}", offDocks[i]);
-                                        controller.assignEmpties("Commo. Code${controller.selectedBLIndex.value}", commoCodes[i]);
-                                        controller.assignEmpties("Perishable${controller.selectedBLIndex.value}", perishables[i]);
-                                      }
-
-                                      if (controller
-                                          .emptyFieldEncountered
-                                          .value) {
-                                        return;
-                                      }
-
-                                      //eee
-
-                                      ImportBLXMLGeneration
-                                      importBLXMLGeneration =
-                                          ImportBLXMLGeneration(
-                                            years: years,
-                                            feederVesselNames: feederVesselNames,
-                                            fevRotationNos: fevRotationNos,
-                                            fvVoys: fvVoys,
-                                            netMTs: netMTs,
-                                            departureDates: departureDates,
-                                            depCodes: depCodes,
-                                            flagNames: flagNames,
-                                            arrivalDates: arrivalDates,
-                                            berthingDates: berthingDates,
-                                            portOfShipments: portOfShipments,
-                                            flags: flags,
-                                            lineNos: lineNos,
-                                            contPrefixes: contPrefixes,
-                                            contNos: contNos,
-                                            sizes: sizes,
-                                            contTypes: contTypes,
-                                            isoCodes: isoCodes,
-                                            qtys: qtys,
-                                            uoms: uoms,
-                                            weightKgms: weightKgms,
-                                            contVolumes: contVolumes,
-                                            vgmQtys: vgmQtys,
-                                            cbms: cbms,
-                                            sealNos: sealNos,
-                                            imcos: imcos,
-                                            uns: uns,
-                                            statuses: statuses,
-                                            loadPortDts: loadPortDts,
-                                            remarks: remarks,
-                                            parts: parts,
-                                            offDocks: offDocks,
-                                            commoCodes: commoCodes,
-                                            perishables: perishables,
-                                            portOfLanding: portOfLanding,
-                                            slNo: slNo,
-                                            blLineNo: blLineNo,
-                                            blNo: blNo,
-                                            fcl: fcl,
-                                            fclQty: fclQty,
-                                            lcl: lcl,
-                                            lclConsolidated: lclConsolidated,
-                                            consigneeCode: consigneeCode,
-                                            consignee: consignee,
-                                            consigneeAddress: consigneeAddress,
-                                            exporter: exporter,
-                                            blRemarks: blRemarks,
-                                            notifyCode: notifyCode,
-                                            notifyParty: notifyParty,
-                                            notifyAddress: notifyAddress,
-                                            exporterAddress: exporterAddress,
-                                            placeOfUnload: placeOfUnload,
-                                            blNature: blNature,
-                                            blTypeCode: blTypeCode,
-                                            blLoadPortDt: blLoadPortDt,
-                                            marks: marks,
-                                            quantity: quantity,
-                                            quantity2: quantity2,
-                                            commodity: commodity,
-                                            dgStatus: dgStatus,
-                                          );
-                                      print(dgStatus);
-
-                                      if (controller.blLineNoTECs.length == 1) {
-                                        importBLXMLGeneration.generateXML();
-                                      }
-
-                                      if (controller.blLineNoTECs.length > 1) {
-                                        importBLXMLGeneration.generateMultiBL();
-                                      }
-                                    },
-                                    child: Container(
+                        Visibility(
+                          visible: false,
+                          child: SizedBox(
+                            width: sizes.width * .89,
+                            child: Center(
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.max,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  spacing: 17,
+                                  children: [
+                                    Container(
                                       height: sizes.appBarHeight * .85,
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(17),
@@ -3343,7 +3145,7 @@ class ImportBL extends GetView<ImportBLController> {
                                       ),
                                       child: Center(
                                         child: Text(
-                                          "      Save      ",
+                                          "      New Record      ",
                                           style: TextStyle(
                                             color: Colors.black,
                                             fontWeight: FontWeight.w700,
@@ -3352,150 +3154,535 @@ class ImportBL extends GetView<ImportBLController> {
                                         ),
                                       ),
                                     ),
-                                  ),
-                                  Container(
-                                    height: sizes.appBarHeight * .85,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(17),
-                                      color: Colors.white,
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        "      Print      ",
-                                        style: TextStyle(
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.w700,
-                                          height: 0,
+                                    GestureDetector(
+                                      onTap: () {
+                          
+                                        //eee
+                                        var years = getDataOffOfTECs(
+                                          controller.yearTECs,
+                                        );
+                                        var feederVesselNames = getDataOffOfTECs(
+                                          controller.feederVesselNameTECs,
+                                        );
+                                        var fevRotationNos = getDataOffOfTECs(
+                                          controller.fevRotationNoTECs,
+                                        );
+                                        var fvVoys = getDataOffOfTECs(
+                                          controller.fvVoyTECs,
+                                        );
+                                        var netMTs = getDataOffOfTECs(
+                                          controller.netMTTECs,
+                                        );
+                                        var departureDates = getDataOffOfTECs(
+                                          controller.departureDateTECs,
+                                        );
+                                        var depCodes = getDataOffOfTECs(
+                                          controller.depCodeTECs,
+                                        );
+                                        var flagNames = getDataOffOfTECs(
+                                          controller.flagNameTECs,
+                                        );
+                                        var arrivalDates = getDataOffOfTECs(
+                                          controller.arrivalDateTECs,
+                                        );
+                                        var berthingDates = getDataOffOfTECs(
+                                          controller.berthingDateTECs,
+                                        );
+                                        var portOfShipments = getDataOffOfTECs(
+                                          controller.portOfShipmentTECs,
+                                        );
+                                        var flags = getDataOffOfTECs(
+                                          controller.flagTECs,
+                                        );
+                                        var lineNos = getDataOffOf2DTECs(
+                                          controller.lineNoTECs,
+                                        );
+                                        var contPrefixes = getDataOffOf2DTECs(
+                                          controller.contPrefixTECs,
+                                        );
+                                        var contNos = getDataOffOf2DTECs(
+                                          controller.contNoTECs,
+                                        );
+                                        var sizes = getDataOffOf2DTECs(
+                                          controller.sizeTECs,
+                                        );
+                                        var contTypes = getDataOffOf2DTECs(
+                                          controller.contTypeTECs,
+                                        );
+                                        var isoCodes = getDataOffOf2DTECs(
+                                          controller.isoCodeTECs,
+                                        );
+                                        var qtys = getDataOffOf2DTECs(
+                                          controller.qtyTECs,
+                                        );
+                                        var uoms = getDataOffOf2DTECs(
+                                          controller.uomTECs,
+                                        );
+                                        var weightKgms = getDataOffOf2DTECs(
+                                          controller.weightKgmTECs,
+                                        );
+                                        var contVolumes = getDataOffOf2DTECs(
+                                          controller.contVolumeTECs,
+                                        );
+                                        var vgmQtys = getDataOffOf2DTECs(
+                                          controller.vgmQtyTECs,
+                                        );
+                                        var cbms = getDataOffOf2DTECs(
+                                          controller.cbmTECs,
+                                        );
+                                        var sealNos = getDataOffOf2DTECs(
+                                          controller.sealNoTECs,
+                                        );
+                                        var imcos = getDataOffOf2DTECs(
+                                          controller.imcoTECs,
+                                        );
+                                        var uns = getDataOffOf2DTECs(
+                                          controller.unTECs,
+                                        );
+                                        var statuses = getDataOffOf2DTECs(
+                                          controller.statusTECs,
+                                        );
+                                        var loadPortDts = getDataOffOf2DTECs(
+                                          controller.loadPortDtTECs,
+                                        );
+                                        var remarks = getDataOffOf2DTECs(
+                                          controller.remarksTECs,
+                                        );
+                                        var parts = getDataOffOf2DTECs(
+                                          controller.partTECs,
+                                        );
+                                        var offDocks = getDataOffOf2DTECs(
+                                          controller.offDockTECs,
+                                        );
+                                        var commoCodes = getDataOffOf2DTECs(
+                                          controller.commoCodeTECs,
+                                        );
+                                        var perishables = getDataOffOf2DTECs(
+                                          controller.perishableTECs,
+                                        );
+                                        var portOfLanding = getDataOffOfTECs(
+                                          controller.portOfLandingTECs,
+                                        );
+                                        var slNo = getDataOffOfTECs(
+                                          controller.slNoTECs,
+                                        );
+                                        var blLineNo = getDataOffOfTECs(
+                                          controller.blLineNoTECs,
+                                        );
+                                        var blNo = getDataOffOfTECs(
+                                          controller.blNoTECs,
+                                        );
+                                        var fcl = getDataOffOfTECs(
+                                          controller.fclTECs,
+                                        );
+                                        var fclQty = getDataOffOfTECs(
+                                          controller.fclQtyTECs,
+                                        );
+                                        var lcl = getDataOffOfTECs(
+                                          controller.lclTECs,
+                                        );
+                                        var lclConsolidated = getDataOffOfTECs(
+                                          controller.lclConsolidatedTECs,
+                                        );
+                                        var consigneeCode = getDataOffOfTECs(
+                                          controller.consigneeCodeTECs,
+                                        );
+                                        var consignee = getDataOffOfTECs(
+                                          controller.consigneeTECs,
+                                        );
+                                        var consigneeAddress = getDataOffOfTECs(
+                                          controller.consigneeAddressTECs,
+                                        );
+                                        var exporter = getDataOffOfTECs(
+                                          controller.exporterTECs,
+                                        );
+                                        var blRemarks = getDataOffOfTECs(
+                                          controller.blRemarksTECs,
+                                        );
+                                        var notifyCode = getDataOffOfTECs(
+                                          controller.notifyCodeTECs,
+                                        );
+                                        var notifyParty = getDataOffOfTECs(
+                                          controller.notifyPartyTECs,
+                                        );
+                                        var notifyAddress = getDataOffOfTECs(
+                                          controller.notifyAddressTECs,
+                                        );
+                                        var exporterAddress = getDataOffOfTECs(
+                                          controller.exporterAddressTECs,
+                                        );
+                                        var placeOfUnload = getDataOffOfTECs(
+                                          controller.placeOfUnloadTECs,
+                                        );
+                                        var blNature = getDataOffOfTECs(
+                                          controller.blNatureTECs,
+                                        );
+                                        var blTypeCode = getDataOffOfTECs(
+                                          controller.blTypeCodeTECs,
+                                        );
+                                        var blLoadPortDt = getDataOffOfTECs(
+                                          controller.blLoadPortDtTECs,
+                                        );
+                                        var marks = getDataOffOfTECs(
+                                          controller.marksTECs,
+                                        );
+                                        var quantity = getDataOffOfTECs(
+                                          controller.quantityTECs,
+                                        );
+                                        var quantity2 = getDataOffOfTECs(
+                                          controller.quantity2TECs,
+                                        );
+                                        var commodity = getDataOffOfTECs(
+                                          controller.commodityTECs,
+                                        );
+                                        var dgStatus = getDataOffOfTECs(
+                                          controller.dgStatusTECs,
+                                        );
+                                        var slNos = getDataOffOfTECs(
+                                          controller.sl_NoTECs,
+                                        );
+                                        var bankAddressForNotice = getDataOffOfTECs(
+                                          controller.bankAddressForNoticeToConsigneeTECs,
+                                        );
+                          
+                                        controller.empties.clear();
+                          
+                                        controller.assignEmpties("Year", years);
+                                        controller.assignEmpties(
+                                          "Feeder Vessel Name",
+                                          feederVesselNames,
+                                        );
+                                        controller.assignEmpties(
+                                          "Fe.V Rotation No.",
+                                          fevRotationNos,
+                                        );
+                                        controller.assignEmpties(
+                                          "F.V. Voy",
+                                          fvVoys,
+                                        );
+                                        controller.assignEmpties("Net MT", netMTs);
+                                        controller.assignEmpties(
+                                          "Departure Date",
+                                          departureDates,
+                                        );
+                                        controller.assignEmpties(
+                                          "Dep. Code",
+                                          depCodes,
+                                        );
+                                        controller.assignEmpties(
+                                          "Flag Name",
+                                          flagNames,
+                                        );
+                                        controller.assignEmpties(
+                                          "Arrival Date",
+                                          arrivalDates,
+                                        );
+                                        controller.assignEmpties(
+                                          "Berthing Date",
+                                          berthingDates,
+                                        );
+                                        controller.assignEmpties(
+                                          "Port of Shipment",
+                                          portOfShipments,
+                                        );
+                                        controller.assignEmpties(
+                                          "Sl No.",
+                                          slNo,
+                                        );
+                                        controller.assignEmpties("CTG/ICD", portOfLanding);
+                                        controller.assignEmpties("Flag", flags);
+                                        controller.assignEmpties("SL_NO", slNos);
+                                        controller.assignEmpties("Line No.", blLineNo);
+                                        controller.assignEmpties("Bl No.", blNo);
+                                        controller.assignEmpties("Fcl", fcl);
+                                        controller.assignEmpties("Fcl/Qty", fclQty);
+                                        controller.assignEmpties("Lcl", lcl);
+                                        controller.assignEmpties("Lcl/Consl.", lclConsolidated);
+                                        controller.assignEmpties("Consig. Code", consigneeCode);
+                                        controller.assignEmpties("Consignee", consignee);
+                                        controller.assignEmpties("Con. Address", consigneeAddress);
+                                        controller.assignEmpties("Exporter", exporter);
+                                        controller.assignEmpties("BL Remarks", blRemarks);
+                                        controller.assignEmpties("Notify Code", notifyCode);
+                                        controller.assignEmpties("Notify Party", notifyParty);
+                                        controller.assignEmpties("Notify Address", notifyAddress);
+                                        controller.assignEmpties("Exporter Add.", exporterAddress);
+                                        controller.assignEmpties("Place Unload", placeOfUnload);
+                                        controller.assignEmpties("Bl Nature", blNature);
+                                        controller.assignEmpties("Bl Type Code", blTypeCode);
+                                        controller.assignEmpties("Load Port Dt.", blLoadPortDt);
+                                        controller.assignEmpties("Marks", marks);
+                                        controller.assignEmpties("Quantity", quantity);
+                                        controller.assignEmpties("Quantity2", quantity2);
+                                        controller.assignEmpties("Commodity", commodity);
+                                        controller.assignEmpties("Dg", dgStatus);
+                                        controller.assignEmpties("Bank address for notice to consignee", bankAddressForNotice);
+                          
+                                        for(int i = 0; i < blNo.length; i++) {
+                                          controller.assignEmpties("Line No.${controller.selectedBLIndex.value}", lineNos[i]);
+                                          controller.assignEmpties("Cont. Prefix${controller.selectedBLIndex.value}", contPrefixes[i]);
+                                          controller.assignEmpties("Cont. No.${controller.selectedBLIndex.value}", contNos[i]);
+                                          controller.assignEmpties("Size${controller.selectedBLIndex.value}", sizes[i]);
+                                          controller.assignEmpties("Cont. Type${controller.selectedBLIndex.value}", contTypes[i]);
+                                          controller.assignEmpties("ISO Code${controller.selectedBLIndex.value}", isoCodes[i]);
+                                          controller.assignEmpties("Qty${controller.selectedBLIndex.value}", qtys[i]);
+                                          controller.assignEmpties("Uom${controller.selectedBLIndex.value}", uoms[i]);
+                                          controller.assignEmpties("Weight (KGM)${controller.selectedBLIndex.value}", weightKgms[i]);
+                                          controller.assignEmpties("Cont. Volume${controller.selectedBLIndex.value}", contVolumes[i]);
+                                          controller.assignEmpties("VGM Qty${controller.selectedBLIndex.value}", vgmQtys[i]);
+                                          controller.assignEmpties("CBM${controller.selectedBLIndex.value}", cbms[i]);
+                                          controller.assignEmpties("Seal No.${controller.selectedBLIndex.value}", sealNos[i]);
+                                          controller.assignEmpties("IMCO${controller.selectedBLIndex.value}", imcos[i]);
+                                          controller.assignEmpties("Un${controller.selectedBLIndex.value}", uns[i]);
+                                          controller.assignEmpties("Status${controller.selectedBLIndex.value}", statuses[i]);
+                                          controller.assignEmpties("Load Port Dt${controller.selectedBLIndex.value}", loadPortDts[i]);
+                                          controller.assignEmpties("Remarks${controller.selectedBLIndex.value}", remarks[i]);
+                                          controller.assignEmpties("Part${controller.selectedBLIndex.value}", parts[i]);
+                                          controller.assignEmpties("Line No.${controller.selectedBLIndex.value}", lineNos[i]);
+                                          controller.assignEmpties("Off Dock${controller.selectedBLIndex.value}", offDocks[i]);
+                                          controller.assignEmpties("Commo. Code${controller.selectedBLIndex.value}", commoCodes[i]);
+                                          controller.assignEmpties("Perishable${controller.selectedBLIndex.value}", perishables[i]);
+                                        }
+                                        importBLXMLGeneration =
+                                            ImportBLXMLGeneration(
+                                              years: years,
+                                              feederVesselNames: feederVesselNames,
+                                              fevRotationNos: fevRotationNos,
+                                              fvVoys: fvVoys,
+                                              netMTs: netMTs,
+                                              departureDates: departureDates,
+                                              depCodes: depCodes,
+                                              flagNames: flagNames,
+                                              arrivalDates: arrivalDates,
+                                              berthingDates: berthingDates,
+                                              portOfShipments: portOfShipments,
+                                              flags: flags,
+                                              lineNos: lineNos,
+                                              contPrefixes: contPrefixes,
+                                              contNos: contNos,
+                                              sizes: sizes,
+                                              contTypes: contTypes,
+                                              isoCodes: isoCodes,
+                                              qtys: qtys,
+                                              uoms: uoms,
+                                              weightKgms: weightKgms,
+                                              contVolumes: contVolumes,
+                                              vgmQtys: vgmQtys,
+                                              cbms: cbms,
+                                              sealNos: sealNos,
+                                              imcos: imcos,
+                                              uns: uns,
+                                              statuses: statuses,
+                                              loadPortDts: loadPortDts,
+                                              remarks: remarks,
+                                              parts: parts,
+                                              offDocks: offDocks,
+                                              commoCodes: commoCodes,
+                                              perishables: perishables,
+                                              portOfLanding: portOfLanding,
+                                              slNo: slNo,
+                                              blLineNo: blLineNo,
+                                              blNo: blNo,
+                                              fcl: fcl,
+                                              fclQty: fclQty,
+                                              lcl: lcl,
+                                              lclConsolidated: lclConsolidated,
+                                              consigneeCode: consigneeCode,
+                                              consignee: consignee,
+                                              consigneeAddress: consigneeAddress,
+                                              exporter: exporter,
+                                              blRemarks: blRemarks,
+                                              notifyCode: notifyCode,
+                                              notifyParty: notifyParty,
+                                              notifyAddress: notifyAddress,
+                                              exporterAddress: exporterAddress,
+                                              placeOfUnload: placeOfUnload,
+                                              blNature: blNature,
+                                              blTypeCode: blTypeCode,
+                                              blLoadPortDt: blLoadPortDt,
+                                              marks: marks,
+                                              quantity: quantity,
+                                              quantity2: quantity2,
+                                              commodity: commodity,
+                                              dgStatus: dgStatus,
+                                            );
+                                        print(dgStatus);
+                                        if (controller
+                                            .emptyFieldEncountered
+                                            .value) {
+                                          _showAlert(context);
+                                          // showAdaptiveDialog(
+                                          //     context: context, builder: (c) {
+                                          //   return CupertinoAlertDialog();
+                                          // });
+                                          return;
+                                        }
+                                        else {
+                                          generateXML();
+                                        }
+                                      },
+                                      child: Container(
+                                        height: sizes.appBarHeight * .85,
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(17),
+                                          color: Colors.white,
                                         ),
-                                      ),
-                                    ),
-                                  ),
-                                  Container(
-                                    height: sizes.appBarHeight * .85,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(17),
-                                      color: Colors.white,
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        "      Bank Info      ",
-                                        style: TextStyle(
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.w700,
-                                          height: 0,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  Container(
-                                    height: sizes.appBarHeight * .85,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(17),
-                                      color: Colors.white,
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        "      Exit      ",
-                                        style: TextStyle(
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.w700,
-                                          height: 0,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  LiquidGlass(
-                                    clipBehavior: Clip.antiAlias,
-                                    shape: const LiquidRoundedSuperellipse(
-                                      borderRadius: Radius.circular(35),
-                                    ),
-                                    settings: LiquidGlassSettings(
-                                      thickness: 20,
-                                      glassColor: const Color(0x09FFFFFF),
-                                      lightIntensity: 3,
-                                      blend: 40,
-                                      ambientStrength: .35,
-                                      lightAngle: math.pi / 7,
-                                      chromaticAberration: 0,
-                                      refractiveIndex: 1.1,
-                                    ),
-                                    child: Container(
-                                      // height: sizes.appBarHeight * 1.5,
-                                      width:
-                                          sizes.calculateTextWidth(
-                                            "Bank address for notice to consignee",
-                                            TextStyle(
-                                              fontWeight: FontWeight.w700,
-                                              color: Colors.white,
-                                            ),
-                                          ) *
-                                          1.35,
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 31,
-                                        vertical: 31,
-                                      ),
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        spacing: 11,
-                                        children: [
-                                          Text(
-                                            "Bank address for notice to consignee",
-                                            textAlign: TextAlign.center,
+                                        child: Center(
+                                          child: Text(
+                                            "      Save      ",
                                             style: TextStyle(
+                                              color: Colors.black,
                                               fontWeight: FontWeight.w700,
-                                              color: Colors.white,
+                                              height: 0,
                                             ),
                                           ),
-                                          Container(
-                                            height: sizes.appBarHeight * .85,
-                                            decoration: BoxDecoration(
-                                              color:
-                                              controller
-                                                  .empties
-                                                  .value
-                                                  .where(
-                                                    (
-                                                    test,
-                                                    ) => test
-                                                    .values
-                                                    .contains(
-                                                  "Bank address for notice to consignee-0",
-                                                ),
-                                              )
-                                                  .isNotEmpty
-                                                  ? Colors.redAccent
-                                                  : Colors.white.withAlpha(31),
-                                              borderRadius: BorderRadius.circular(
-                                                17,
-                                              ),
-                                            ),
-                                            child: TextField(
-                                              cursorColor:
-                                              Colors.white,
-                                              // Gets the right controller using the helper method
-                                              controller: controller.bankAddressForNoticeToConsigneeTECs[0],
-                                              textAlignVertical:
-                                              TextAlignVertical
-                                                  .center,
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontWeight:
-                                                FontWeight.w700,
-                                              ),
-                                              decoration:
-                                              const InputDecoration(
-                                                border:
-                                                InputBorder
-                                                    .none,
-                                                isDense: true,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ],
+                                    Container(
+                                      height: sizes.appBarHeight * .85,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(17),
+                                        color: Colors.white,
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          "      Print      ",
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                            fontWeight: FontWeight.w700,
+                                            height: 0,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Container(
+                                      height: sizes.appBarHeight * .85,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(17),
+                                        color: Colors.white,
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          "      Bank Info      ",
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                            fontWeight: FontWeight.w700,
+                                            height: 0,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Container(
+                                      height: sizes.appBarHeight * .85,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(17),
+                                        color: Colors.white,
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          "      Exit      ",
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                            fontWeight: FontWeight.w700,
+                                            height: 0,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    LiquidGlass(
+                                      clipBehavior: Clip.antiAlias,
+                                      shape: const LiquidRoundedSuperellipse(
+                                        borderRadius: Radius.circular(35),
+                                      ),
+                                      settings: LiquidGlassSettings(
+                                        thickness: 20,
+                                        glassColor: const Color(0x09FFFFFF),
+                                        lightIntensity: 3,
+                                        blend: 40,
+                                        ambientStrength: .35,
+                                        lightAngle: math.pi / 7,
+                                        chromaticAberration: 0,
+                                        refractiveIndex: 1.1,
+                                      ),
+                                      child: Container(
+                                        // height: sizes.appBarHeight * 1.5,
+                                        width:
+                                            sizes.calculateTextWidth(
+                                              "Bank address for notice to consignee",
+                                              TextStyle(
+                                                fontWeight: FontWeight.w700,
+                                                color: Colors.white,
+                                              ),
+                                            ) *
+                                            1.35,
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 31,
+                                          vertical: 31,
+                                        ),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          spacing: 11,
+                                          children: [
+                                            Text(
+                                              "Bank address for notice to consignee",
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w700,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                            Container(
+                                              height: sizes.appBarHeight * .85,
+                                              decoration: BoxDecoration(
+                                                color:
+                                                controller
+                                                    .empties
+                                                    .value
+                                                    .where(
+                                                      (
+                                                      test,
+                                                      ) => test
+                                                      .values
+                                                      .contains(
+                                                    "Bank address for notice to consignee-0",
+                                                  ),
+                                                )
+                                                    .isNotEmpty
+                                                    ? Colors.redAccent
+                                                    : Colors.white.withAlpha(31),
+                                                borderRadius: BorderRadius.circular(
+                                                  17,
+                                                ),
+                                              ),
+                                              child: TextField(
+                                                cursorColor:
+                                                Colors.white,
+                                                // Gets the right controller using the helper method
+                                                controller: controller.bankAddressForNoticeToConsigneeTECs[0],
+                                                textAlignVertical:
+                                                TextAlignVertical
+                                                    .center,
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight:
+                                                  FontWeight.w700,
+                                                ),
+                                                decoration:
+                                                const InputDecoration(
+                                                  border:
+                                                  InputBorder
+                                                      .none,
+                                                  isDense: true,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
@@ -3635,11 +3822,11 @@ class ImportBL extends GetView<ImportBLController> {
                                                             controller
                                                                     .bottomSheetTag1
                                                                     .value =
-                                                                "Yes";
+                                                                "YES";
                                                             controller
                                                                     .bottomSheetTag2
                                                                     .value =
-                                                                "No";
+                                                                "NO";
 
                                                             controller
                                                                     .shouldShowBottomSheet
@@ -3656,7 +3843,18 @@ class ImportBL extends GetView<ImportBLController> {
                                                           } else {}
                                                         },
                                                         child: Container(
-                                                          width:
+                                                          width: heading == "Un" ?
+                                                              sizes.calculateTextWidth(
+                                                                heading,
+                                                                const TextStyle(
+                                                                  color: Colors
+                                                                      .white,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w700,
+                                                                ),
+                                                              ) *
+                                                              5 :
                                                               sizes.calculateTextWidth(
                                                                 heading,
                                                                 const TextStyle(
@@ -3759,7 +3957,7 @@ class ImportBL extends GetView<ImportBLController> {
                                                                               .value
                                                                               .text
                                                                               .isEmpty
-                                                                          ? "Yes"
+                                                                          ? "YES"
                                                                           : controller
                                                                                 .perishableTECs[controller.selectedBLIndex.value][rowIndex ??
                                                                                     0]
@@ -3858,13 +4056,14 @@ class ImportBL extends GetView<ImportBLController> {
                                             GestureDetector(
                                               // Logic to limit rows to 5
                                               onTap:
-                                                  controller
-                                                          .rowCountForContainer >=
-                                                      5
-                                                  ? () {
-                                                      print("...");
-                                                    }
-                                                  : () => {
+                                                  // controller
+                                                  //         .rowCountForContainer >=
+                                                  //     5
+                                                  // ? () {
+                                                  //     print("...");
+                                                  //   }
+                                                  // :
+                                                      () => {
                                                       print("+++"),
                                                       controller
                                                           .addRowToSpecificIndexInContainerTable(
@@ -3914,11 +4113,12 @@ class ImportBL extends GetView<ImportBLController> {
                                                         "       add row      ",
                                                         style: TextStyle(
                                                           color:
-                                                              controller
-                                                                      .rowCountForContainer >=
-                                                                  5
-                                                              ? Colors.white30
-                                                              : Colors.white,
+                                                              // controller
+                                                              //         .rowCountForContainer >=
+                                                              //     5
+                                                              // ? Colors.white30
+                                                              // :
+                                                              Colors.white,
                                                           fontWeight:
                                                               FontWeight.w900,
                                                         ),
@@ -4048,7 +4248,8 @@ class ImportBL extends GetView<ImportBLController> {
                                       .text =
                                   controller.bottomSheetTag1.value;
                             }
-                            if (controller.bottomSheetTag1.value == "Yes") {
+                            if (controller.selectedHeading.value ==
+                                "Dg") {
                               controller
                                       .dgStatusTECs[controller
                                           .selectedBLIndex
@@ -4120,7 +4321,7 @@ class ImportBL extends GetView<ImportBLController> {
                                       .text =
                                   controller.bottomSheetTag2.value;
                             }
-                            if (controller.bottomSheetTag1.value == "Yes") {
+                            if (controller.bottomSheetTag1.value == "YES") {
                               controller
                                       .dgStatusTECs[controller
                                           .selectedBLIndex

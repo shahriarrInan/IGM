@@ -131,6 +131,16 @@ class ImportBLXMLGeneration {
 
   double totalGrossMass = 0.0;
 
+  int total_qty = 0;
+
+  getTotalQty() {
+    print("object: ${quantity[0]}");
+    for(var v in quantity) {
+        total_qty += int.parse(v.value.isEmpty ? "0" : v.value);
+    }
+    return total_qty;
+  }
+
   generateXML() {
     final xml =
         '''<?xml version="1.0" encoding="WINDOWS-1252"?>
@@ -139,13 +149,13 @@ class ImportBLXMLGeneration {
         <General_segment>
           <General_segment_id>
             <Customs_office_code>305</Customs_office_code>
-            <Voyage_number>${fevRotationNos[0].value}</Voyage_number>
+            <Voyage_number>${fvVoys[0].value}</Voyage_number>
             <Date_of_departure>${departureDates[0].value}</Date_of_departure>
             <Date_of_arrival>${arrivalDates[0].value}</Date_of_arrival>
           </General_segment_id>
           <Totals_segment>
             <Total_number_of_bols>${blLineNo.length.toString()}</Total_number_of_bols>
-            <Total_number_of_packages>${qtys[0][0].value}</Total_number_of_packages>
+            <Total_number_of_packages>${getTotalQty()}</Total_number_of_packages>
             <Total_number_of_containers>${contNos.length.toString()}</Total_number_of_containers>
             <Total_gross_mass>${weightKgms[0][0].value}</Total_gross_mass>
           </Totals_segment>
@@ -156,7 +166,7 @@ class ImportBLXMLGeneration {
               <Carrier_address>&quot;Portland MAM Tower&quot; 226 Strand Road, Bangla Bazar, CTG.</Carrier_address>
             </Carrier>
             <Mode_of_transport_code>1</Mode_of_transport_code>
-            <Identity_of_transporter>HR SAHARE</Identity_of_transporter>
+            <Identity_of_transporter>${feederVesselNames[0].value}</Identity_of_transporter>
             <Nationality_of_transporter_code>${flags[0].value}</Nationality_of_transporter_code>
           </Transport_information>
           <Load_unload_place>
@@ -167,12 +177,12 @@ class ImportBLXMLGeneration {
         <Bol_segment>
           <Bol_id>
             <Bol_reference>${blNo[0].value}</Bol_reference>
-            <Line_number>${blLineNo[0].value}</Line_number>
+            <Line_number>${slNo[0].value}</Line_number>
             <Bol_nature>${blNature[0].value}</Bol_nature>
             <Bol_type_code>${blTypeCode[0].value}</Bol_type_code>
-            <DG_status>${dgStatus[0].value}</DG_status>
+            <DG_status>${dgStatus[0].value == "YES" ? "DG" : ""}</DG_status>
           </Bol_id>
-          <Consolidated_Cargo>${lclConsolidated[0].value}</Consolidated_Cargo>
+          <Consolidated_Cargo>${lcl[0].value.isEmpty ? "0" : lclConsolidated[0].value}</Consolidated_Cargo>
           <Load_unload_place>
             <Port_of_origin_code>${blLoadPortDt[0].value}</Port_of_origin_code>
             <Place_of_unloading_code>${placeOfUnload[0].value}</Place_of_unloading_code>
@@ -205,7 +215,7 @@ class ImportBLXMLGeneration {
           <ctn_segment>
             <Ctn_reference>${contPrefixes[0][0].value}${contNos[0][0].value}</Ctn_reference>
             <Number_of_packages>${qtys[0][0].value}</Number_of_packages>
-            <Type_of_container>${contTypes[0][0].value}</Type_of_container>
+            <Type_of_container>${isoCodes[0][0].value}</Type_of_container>
             <Status>${statuses[0][0].value}</Status>
             <Seal_number>${sealNos[0][0].value}</Seal_number>
             <IMCO>${imcos[0][0].value}</IMCO>
@@ -221,7 +231,7 @@ class ImportBLXMLGeneration {
             <Gross_mass>${weightKgms[0][0].value}</Gross_mass>
             <Shipping_marks>${marks[0].value}</Shipping_marks>
             <Goods_description>${commodity[0].value}</Goods_description>
-            <Volume_in_cubic_meters>${contVolumes[0][0].value}</Volume_in_cubic_meters>
+            <Volume_in_cubic_meters>0</Volume_in_cubic_meters>
             <Num_of_ctn_for_required required this_bol>1</Num_of_ctn_for_required required this_bol>
             <Remarks>${remarks[0][0].value}</Remarks>
           </Goods_segment>
@@ -259,7 +269,7 @@ class ImportBLXMLGeneration {
           """<ctn_segment>
       <Ctn_reference>${contPrefixes[index][i].value}${contNos[index][i].value}</Ctn_reference>
       <Number_of_packages>${quantity[index].value}</Number_of_packages>
-      <Type_of_container>${contTypes[index][i].value}</Type_of_container>
+      <Type_of_container>${isoCodes[index][i].value}</Type_of_container>
       <Status>${statuses[index][i].value}</Status>
       <Seal_number>${sealNos[index][i].value}</Seal_number>
       <IMCO>${imcos[index][i].value}</IMCO>
@@ -311,12 +321,12 @@ class ImportBLXMLGeneration {
           """<Bol_segment>
     <Bol_id>
       <Bol_reference>${blNo[i].value}</Bol_reference>
-      <Line_number>${blLineNo[i].value}</Line_number>
+      <Line_number>${slNo[i].value}</Line_number>
       <Bol_nature>${blNature[i].value}</Bol_nature>
       <Bol_type_code>${blTypeCode[i].value}</Bol_type_code>
-      <DG_status>${dgStatus[i].value}</DG_status>
+      <DG_status>${dgStatus[i].value == "YES" ? "DG" : ""}</DG_status>
     </Bol_id>
-    <Consolidated_Cargo>${lclConsolidated[i].value}</Consolidated_Cargo>
+    <Consolidated_Cargo>${lcl[i].value.isEmpty ? "0" : lclConsolidated[i].value}</Consolidated_Cargo>
     <Load_unload_place>
       <Port_of_origin_code>${blLoadPortDt[i].value}</Port_of_origin_code>
       <Place_of_unloading_code>${placeOfUnload[i].value}</Place_of_unloading_code>
@@ -355,7 +365,7 @@ class ImportBLXMLGeneration {
       <Gross_mass>${getCombinedMass(i)}</Gross_mass>
       <Shipping_marks>${marks[i].value}</Shipping_marks>
       <Goods_description>${commodity[i].value}</Goods_description>
-      <Volume_in_cubic_meters>${getCombinedContainerVolume(i)}</Volume_in_cubic_meters>
+      <Volume_in_cubic_meters>0</Volume_in_cubic_meters>
       <Num_of_ctn_for_this_bol>${contNos.length.toString()}</Num_of_ctn_for_this_bol>
       <Remarks></Remarks>
     </Goods_segment>
@@ -379,13 +389,13 @@ class ImportBLXMLGeneration {
   <General_segment>
     <General_segment_id>
       <Customs_office_code>301</Customs_office_code>
-      <Voyage_number>${fevRotationNos[0].value}</Voyage_number>
+      <Voyage_number>${fvVoys[0].value}</Voyage_number>
       <Date_of_departure>${departureDates[0].value}</Date_of_departure>
       <Date_of_arrival>${arrivalDates[0].value}</Date_of_arrival>
     </General_segment_id>
     <Totals_segment>
       <Total_number_of_bols>${blLineNo.length.toString()}</Total_number_of_bols>
-      <Total_number_of_packages>${qtys[0][0].value}</Total_number_of_packages>
+      <Total_number_of_packages>${getTotalQty()}</Total_number_of_packages>
       <Total_number_of_containers>${contNos.length.toString()}</Total_number_of_containers>
       <Total_gross_mass>${totalGrossMass.toString()}</Total_gross_mass>
     </Totals_segment>

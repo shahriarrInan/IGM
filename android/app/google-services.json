@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "254232052405",
+    "firebase_url": "https://igm-mmgsll-default-rtdb.firebaseio.com",
+    "project_id": "igm-mmgsll",
+    "storage_bucket": "igm-mmgsll.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:254232052405:android:309789a773b08d3d4d74fc",
+        "android_client_info": {
+          "package_name": "com.example.igm"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCImmveNL8Ewdkvb4tRzjRNYgA6y0LNFfc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
