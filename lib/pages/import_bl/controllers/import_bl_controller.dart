@@ -354,6 +354,71 @@ class ImportBLController extends GetxController {
     statusTECs[index][statusTECs[index].length - 1].text = "FCL";
   }
 
+  void removeLastBlRow() {
+    // Guard clause to prevent errors on an empty list
+    if (portOfLandingTECs.isEmpty) {
+      print("Cannot remove a row, the table is already empty.");
+      return;
+    }
+
+    // --- IMPORTANT: Dispose controllers before removing them ---
+    // This prevents memory leaks!
+    portOfLandingTECs.last.dispose();
+    slNoTECs.last.dispose();
+    blLineNoTECs.last.dispose();
+    blNoTECs.last.dispose();
+    fclTECs.last.dispose();
+    fclQtyTECs.last.dispose();
+    lclTECs.last.dispose();
+    lclConsolidatedTECs.last.dispose();
+    consigneeCodeTECs.last.dispose();
+    consigneeTECs.last.dispose();
+    consigneeAddressTECs.last.dispose();
+    exporterTECs.last.dispose();
+    blRemarksTECs.last.dispose();
+    notifyCodeTECs.last.dispose();
+    notifyPartyTECs.last.dispose();
+    notifyAddressTECs.last.dispose();
+    exporterAddressTECs.last.dispose();
+    placeOfUnloadTECs.last.dispose();
+    blNatureTECs.last.dispose();
+    blTypeCodeTECs.last.dispose();
+    blLoadPortDtTECs.last.dispose();
+    marksTECs.last.dispose();
+    quantityTECs.last.dispose();
+    quantity2TECs.last.dispose();
+    commodityTECs.last.dispose();
+    dgStatusTECs.last.dispose();
+
+    // --- Now remove the references from the list ---
+    portOfLandingTECs.removeLast();
+    slNoTECs.removeLast();
+    blLineNoTECs.removeLast();
+    blNoTECs.removeLast();
+    fclTECs.removeLast();
+    fclQtyTECs.removeLast();
+    lclTECs.removeLast();
+    lclConsolidatedTECs.removeLast();
+    consigneeCodeTECs.removeLast();
+    consigneeTECs.removeLast();
+    consigneeAddressTECs.removeLast();
+    exporterTECs.removeLast();
+    blRemarksTECs.removeLast();
+    notifyCodeTECs.removeLast();
+    notifyPartyTECs.removeLast();
+    notifyAddressTECs.removeLast();
+    exporterAddressTECs.removeLast();
+    placeOfUnloadTECs.removeLast();
+    blNatureTECs.removeLast();
+    blTypeCodeTECs.removeLast();
+    blLoadPortDtTECs.removeLast();
+    marksTECs.removeLast();
+    quantityTECs.removeLast();
+    quantity2TECs.removeLast();
+    commodityTECs.removeLast();
+    dgStatusTECs.removeLast();
+  }
+
   void addBlTableTECs() {
     portOfLandingTECs.add(TextEditingController());
     slNoTECs.add(TextEditingController());
