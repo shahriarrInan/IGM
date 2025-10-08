@@ -82,7 +82,7 @@ class CompanyPage extends GetView<CompanyListController> {
                           onTap: () async{
                             SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
                             await sharedPreferences.setString("selected company", companyName);
-                            Get.toNamed(Routes.IMPORT_BL);
+                            Get.toNamed(Routes.MLO_PAGE);
                           },
                           child: Text(companyName,
                             style: TextStyle(

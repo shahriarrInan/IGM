@@ -128,8 +128,8 @@ class ImportBL extends GetView<ImportBLController> {
 
     late ImportBLXMLGeneration importBLXMLGeneration;
 
-    generateXML(String company) {
-      importBLXMLGeneration.generateMultiBL(company);
+    generateXML(String company, String mlo_code, String mlo_name) {
+      importBLXMLGeneration.generateMultiBL(company, mlo_code, mlo_name);
       // importBLXMLGeneration.generateXML();
 
       // if (controller.blLineNoTECs.length == 1) {
@@ -165,13 +165,13 @@ class ImportBL extends GetView<ImportBLController> {
               TextButton(
                 child: const Text('Continue'),
                 onPressed: () async{
-                  // Perform your action here
-                  // Then, close the dialog
                   SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-                  String? company = sharedPreferences.getString("company name");
+                  String? company = sharedPreferences.getString("selected company");
+                  String? mlo_code = sharedPreferences.getString("selected MLO code");
+                  String? mlo_name = sharedPreferences.getString("selected MLO name");
                   Navigator.of(context).pop();
                   debugPrint("'Yes' was tapped.");
-                  generateXML(company!);
+                  generateXML(company!, mlo_code!, mlo_name!);
                 },
               ),
             ],
@@ -4110,7 +4110,9 @@ class ImportBL extends GetView<ImportBLController> {
 
                                           SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
                                           String? company = sharedPreferences.getString("company name");
-                                          generateXML(company!);
+                                          String? mlo_code = sharedPreferences.getString("selected MLO code");
+                                          String? mlo_name = sharedPreferences.getString("selected MLO name");
+                                          generateXML(company!, mlo_code!, mlo_name!);
                                         }
                                       },
                                       child: Container(

@@ -316,7 +316,7 @@ class ImportBLXMLGeneration {
     return grossVolume.toString();
   }
 
-  dynamic prepareMultiBLSection(company) {
+  dynamic prepareMultiBLSection(company, mlo_code, mlo_name) {
     List totalBls = blNo.where((v) => v.isNotEmpty).toList();
     print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n${totalBls.length}");
     String BLs = "";
@@ -346,8 +346,8 @@ class ImportBLXMLGeneration {
       <Carrier_address>M A M TOWER, (13TH FLOOR), 226, STRAND ROAD</Carrier_address>
     </Carrier>
     <Shipping_Agent>
-      <Shipping_Agent_code>KCP</Shipping_Agent_code>
-        <Shipping_Agent_name>KING CHARTERING AND PROJECT</Shipping_Agent_name>
+      <Shipping_Agent_code>$mlo_code</Shipping_Agent_code>
+        <Shipping_Agent_name>$mlo_name</Shipping_Agent_name>
     </Shipping_Agent>
     <Exporter>
       <Exporter_name>${exporter[i].value}</Exporter_name>
@@ -400,7 +400,7 @@ class ImportBLXMLGeneration {
     return totalMass;
 }
 
-  dynamic generateMultiBL(String company) async {
+  dynamic generateMultiBL(String company, String mlo_code, String mlo_name) async {
     var structure =
         """
 <?xml version="1.0" encoding="WINDOWS-1252"?>
@@ -434,7 +434,7 @@ class ImportBLXMLGeneration {
       <Place_of_destination_code>BDCGP</Place_of_destination_code>
     </Load_unload_place>
   </General_segment>
-  ${prepareMultiBLSection(company)}
+  ${prepareMultiBLSection(company, mlo_code, mlo_name)}
 </Awmds>
 """;
 
