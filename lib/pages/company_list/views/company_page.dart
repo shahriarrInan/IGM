@@ -6,6 +6,8 @@ import 'package:refreshed/refreshed.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 class CompanyPage extends GetView<CompanyListController> {
   const CompanyPage({super.key});
 
@@ -67,49 +69,74 @@ class CompanyPage extends GetView<CompanyListController> {
                   child: SizedBox(
                     // height: sizes.height * .45,
                     width: sizes.width * .59,
-                    child: Column(
-                      spacing: 11,
-                      children: [
-                        SizedBox(height: sizes.appBarHeight * 2,),
-                        GestureDetector(
-                          onTap: () {
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                        padding: EdgeInsets.all(sizes.appBarHeight * 1.75),
+                        itemCount: controller.companyNames.length,
+                        itemBuilder: (c, i) {
+
+                          String companyName = controller.companyNames[i];
+
+                      return Center(
+                        child: GestureDetector(
+                          onTap: () async{
+                            SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+                            await sharedPreferences.setString("selected company", companyName);
                             Get.toNamed(Routes.IMPORT_BL);
                           },
-                          child: Text("MMG SHIPPING LINES LTD.",
-                          style: TextStyle(
-                            fontWeight: FontWeight.w100,
-                            color: Colors.white,
-                            fontSize: 31
-                          ),
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            Get.toNamed(Routes.IMPORT_BL);
-                          },
-                          child: Text("MMG SEAWAYS LTD.",
-                          style: TextStyle(
-                            fontWeight: FontWeight.w100,
-                            color: Colors.white,
-                            fontSize: 31
-                          ),
+                          child: Text(companyName,
+                            style: TextStyle(
+                                fontWeight: FontWeight.w100,
+                                color: Colors.white,
+                                fontSize: 31
+                            ),
                           ),
                         ),
-                        GestureDetector(
-                          onTap: () {
-                            Get.offAndToNamed(Routes.IMPORT_BL);
-                          },
-                          child: Text("MM SEAWAYS LTD.",
-                          style: TextStyle(
-                            fontWeight: FontWeight.w100,
-                            color: Colors.white,
-                            fontSize: 31
-                          ),
-                          ),
-                        ),
-                        SizedBox(height: sizes.appBarHeight * 2,),
-                      ],
-                    ),
+                      );
+                    }),
+                    // child: Column(
+                    //   spacing: 11,
+                    //   children: [
+                    //     SizedBox(height: sizes.appBarHeight * 2,),
+                    //     GestureDetector(
+                    //       onTap: () {
+                    //         Get.toNamed(Routes.IMPORT_BL);
+                    //       },
+                    //       child: Text("MMG SHIPPING LINES LTD.",
+                    //       style: TextStyle(
+                    //         fontWeight: FontWeight.w100,
+                    //         color: Colors.white,
+                    //         fontSize: 31
+                    //       ),
+                    //       ),
+                    //     ),
+                    //     GestureDetector(
+                    //       onTap: () {
+                    //         Get.toNamed(Routes.IMPORT_BL);
+                    //       },
+                    //       child: Text("MMG SEAWAYS LTD.",
+                    //       style: TextStyle(
+                    //         fontWeight: FontWeight.w100,
+                    //         color: Colors.white,
+                    //         fontSize: 31
+                    //       ),
+                    //       ),
+                    //     ),
+                    //     GestureDetector(
+                    //       onTap: () {
+                    //         Get.offAndToNamed(Routes.IMPORT_BL);
+                    //       },
+                    //       child: Text("MM SEAWAYS LTD.",
+                    //       style: TextStyle(
+                    //         fontWeight: FontWeight.w100,
+                    //         color: Colors.white,
+                    //         fontSize: 31
+                    //       ),
+                    //       ),
+                    //     ),
+                    //     SizedBox(height: sizes.appBarHeight * 2,),
+                    //   ],
+                    // ),
                   ),
                 )
               ],

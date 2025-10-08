@@ -198,8 +198,8 @@ class ImportBLXMLGeneration {
         <Carrier_address>M A M TOWER, (13TH FLOOR), 226, STRAND ROAD</Carrier_address>
       </Carrier>
       <Shipping_Agent>
-        <Shipping_Agent_code>OLL</Shipping_Agent_code>
-        <Shipping_Agent_name>ONE LINE LTD.</Shipping_Agent_name>
+        <Shipping_Agent_code>KCP</Shipping_Agent_code>
+        <Shipping_Agent_name>KING CHARTERING AND PROJECT</Shipping_Agent_name>
       </Shipping_Agent>
       <Exporter>
         <Exporter_name>${exporter[0].value}</Exporter_name>
@@ -236,7 +236,7 @@ class ImportBLXMLGeneration {
       <Shipping_marks>${marks[0].value}</Shipping_marks>
       <Goods_description>${commodity[0].value}</Goods_description>
       <Volume_in_cubic_meters>0</Volume_in_cubic_meters>
-      <Num_of_ctn_for_required required this_bol>1</Num_of_ctn_for_required required this_bol>
+      <Num_of_ctn_for_required>1</Num_of_ctn_for_required>
       <Remarks>${remarks[0][0].value}</Remarks>
     </Goods_segment>
     <Value_segment>
@@ -316,7 +316,7 @@ class ImportBLXMLGeneration {
     return grossVolume.toString();
   }
 
-  dynamic prepareMultiBLSection() {
+  dynamic prepareMultiBLSection(company) {
     List totalBls = blNo.where((v) => v.isNotEmpty).toList();
     print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n${totalBls.length}");
     String BLs = "";
@@ -342,7 +342,7 @@ class ImportBLXMLGeneration {
   <Traders_segment>
     <Carrier>
       <Carrier_code>301093439</Carrier_code>
-      <Carrier_name>NOBLE SHIPPING LINE</Carrier_name>
+      <Carrier_name>$company</Carrier_name>
       <Carrier_address>M A M TOWER, (13TH FLOOR), 226, STRAND ROAD</Carrier_address>
     </Carrier>
     <Shipping_Agent>
@@ -400,7 +400,7 @@ class ImportBLXMLGeneration {
     return totalMass;
 }
 
-  dynamic generateMultiBL() async {
+  dynamic generateMultiBL(String company) async {
     var structure =
         """
 <?xml version="1.0" encoding="WINDOWS-1252"?>
@@ -422,19 +422,19 @@ class ImportBLXMLGeneration {
     <Transport_information>
       <Carrier>
         <Carrier_code>301093439</Carrier_code>
-        <Carrier_name>NOBLE SHIPPING LINE</Carrier_name>
+        <Carrier_name>$company</Carrier_name>
         <Carrier_address>M A M TOWER, (13TH FLOOR), 226, STRAND ROAD</Carrier_address>
       </Carrier>
       <Mode_of_transport_code>1</Mode_of_transport_code>
       <Identity_of_transporter>${feederVesselNames[0].value}</Identity_of_transporter>
-      <Nationality_of_transporter_code>${flagNames[0].value}</Nationality_of_transporter_code>
+      <Nationality_of_transporter_code>${flags[0].value}</Nationality_of_transporter_code>
     </Transport_information>
     <Load_unload_place>
       <Place_of_departure_code>${depCodes[0].value}</Place_of_departure_code>
       <Place_of_destination_code>BDCGP</Place_of_destination_code>
     </Load_unload_place>
   </General_segment>
-  ${prepareMultiBLSection()}
+  ${prepareMultiBLSection(company)}
 </Awmds>
 """;
 

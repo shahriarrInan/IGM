@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import 'package:refreshed/refreshed.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math' as math;
 
 import '../../../routes/app_routes.dart';
@@ -127,8 +128,8 @@ class ImportBL extends GetView<ImportBLController> {
 
     late ImportBLXMLGeneration importBLXMLGeneration;
 
-    generateXML() {
-      importBLXMLGeneration.generateMultiBL();
+    generateXML(String company) {
+      importBLXMLGeneration.generateMultiBL(company);
       // importBLXMLGeneration.generateXML();
 
       // if (controller.blLineNoTECs.length == 1) {
@@ -163,12 +164,14 @@ class ImportBL extends GetView<ImportBLController> {
               // The "Yes" button
               TextButton(
                 child: const Text('Continue'),
-                onPressed: () {
+                onPressed: () async{
                   // Perform your action here
                   // Then, close the dialog
+                  SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+                  String? company = sharedPreferences.getString("company name");
                   Navigator.of(context).pop();
                   debugPrint("'Yes' was tapped.");
-                  generateXML();
+                  generateXML(company!);
                 },
               ),
             ],
@@ -3592,7 +3595,7 @@ class ImportBL extends GetView<ImportBLController> {
                                       ),
                                     ),
                                     GestureDetector(
-                                      onTap: () {
+                                      onTap: () async {
                                         //eee
                                         var years = getDataOffOfTECs(
                                           controller.yearTECs,
@@ -4104,7 +4107,10 @@ class ImportBL extends GetView<ImportBLController> {
                                           // });
                                           return;
                                         } else {
-                                          generateXML();
+
+                                          SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+                                          String? company = sharedPreferences.getString("company name");
+                                          generateXML(company!);
                                         }
                                       },
                                       child: Container(
