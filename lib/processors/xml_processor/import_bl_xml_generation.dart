@@ -152,7 +152,7 @@ class ImportBLXMLGeneration {
 <Awmds>
   <General_segment>
     <General_segment_id>
-      <Customs_office_code>305</Customs_office_code>
+      <Customs_office_code>301</Customs_office_code>
       <Voyage_number>${fvVoys[0].value}</Voyage_number>
       <Date_of_departure>${departureDates[0].value}</Date_of_departure>
       <Date_of_arrival>${arrivalDates[0].value}</Date_of_arrival>
@@ -387,9 +387,9 @@ class ImportBLXMLGeneration {
     return BLs;
   }
 
-  getGrossMassAsPerVGM() {
+  getGrossMassAsPerWeightKGM() {
     double totalMass = 0;
-    for (var v in vgmQtys) {
+    for (var v in weightKgms) {
       for (var m in v) {
         if(m.value.isNotEmpty) {
           totalMass += double.parse(m.value);
@@ -417,7 +417,7 @@ class ImportBLXMLGeneration {
       <Total_number_of_bols>${blNo.length.toString()}</Total_number_of_bols>
       <Total_number_of_packages>${getTotalQty()}</Total_number_of_packages>
       <Total_number_of_containers>${contPrefixes.length.toString()}</Total_number_of_containers>
-      <Total_gross_mass>${getGrossMassAsPerVGM()}</Total_gross_mass>
+      <Total_gross_mass>${getGrossMassAsPerWeightKGM()}</Total_gross_mass>
     </Totals_segment>
     <Transport_information>
       <Carrier>
