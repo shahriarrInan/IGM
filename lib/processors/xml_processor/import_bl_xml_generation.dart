@@ -195,7 +195,7 @@ class ImportBLXMLGeneration {
       <Carrier>
         <Carrier_code>301093439</Carrier_code>
         <Carrier_name>NOBLE SHIPPING LINE</Carrier_name>
-        <Carrier_address>M A M TOWER, (13TH FLOOR), 226, STRAND ROAD</Carrier_address>
+        <Carrier_address>PORTLAND M A M TOWER(13TH FLOOR),STRAND ROAD,BANGLABAZAR,CHATTOGRAM</Carrier_address>
       </Carrier>
       <Shipping_Agent>
         <Shipping_Agent_code>KCP</Shipping_Agent_code>
@@ -262,6 +262,9 @@ class ImportBLXMLGeneration {
   }
 
   dynamic getAllContainerInfoForSpecificBL(int index) {
+
+    print("blufff $qtys");
+
     String ctns = "";
 
     for (int i = 0; i < contNos[index].length; i++) {
@@ -273,13 +276,13 @@ class ImportBLXMLGeneration {
           """
 <ctn_segment>
   <Ctn_reference>${contPrefixes[index][i].value}${contNos[index][i].value}</Ctn_reference>
-  <Number_of_packages>${quantity[index].value}</Number_of_packages>
+  <Number_of_packages>${qtys[index][i].value}</Number_of_packages>
   <Type_of_container>${isoCodes[index][i].value}</Type_of_container>
-  <Status>${statuses[index][i].value}</Status>
+  <Status>${statuses[index][i].value.isEmpty ? "FCL" : statuses[index][i].value}</Status>
   <Seal_number>${sealNos[index][i].value}</Seal_number>
   <IMCO>${imcos[index][i].value}</IMCO>
   <UN>${uns[index][i].value}</UN>
-  <Ctn_location>${portOfLanding[index].value}</Ctn_location>
+  <Ctn_location>${offDocks[index][i].value}</Ctn_location>
   <Commodity_code>${commoCodes[index][i].value}</Commodity_code>
   <Gross_weight>${weightKgms[index][i].value}</Gross_weight>
   <Verified_Gross_Mass>${vgmQtys[index][i].value}</Verified_Gross_Mass>
@@ -317,6 +320,7 @@ class ImportBLXMLGeneration {
   }
 
   dynamic prepareMultiBLSection(company, mlo_code, mlo_name) {
+    print("wtf $dgStatus");
     List totalBls = blNo.where((v) => v.isNotEmpty).toList();
     print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n${totalBls.length}");
     String BLs = "";
@@ -332,7 +336,7 @@ class ImportBLXMLGeneration {
     <Line_number>${slNo[i].value}</Line_number>
     <Bol_nature>${blNature[i].value}</Bol_nature>
     <Bol_type_code>${blTypeCode[i].value}</Bol_type_code>
-    <DG_status>${dgStatus[i].value == "YES" ? "DG" : ""}</DG_status>
+    <DG_status>${dgStatus[i].value == "YES" || dgStatus[i].value == "Yes" ? "DG" : ""}</DG_status>
   </Bol_id>
   <Consolidated_Cargo>${lclConsolidated[i].value.isEmpty || lcl[i].value.isEmpty ? "0" : "1"}</Consolidated_Cargo>
   <Load_unload_place>
@@ -343,7 +347,7 @@ class ImportBLXMLGeneration {
     <Carrier>
       <Carrier_code>301093439</Carrier_code>
       <Carrier_name>$company</Carrier_name>
-      <Carrier_address>M A M TOWER, (13TH FLOOR), 226, STRAND ROAD</Carrier_address>
+      <Carrier_address>PORTLAND M A M TOWER(13TH FLOOR),STRAND ROAD,BANGLABAZAR,CHATTOGRAM</Carrier_address>
     </Carrier>
     <Shipping_Agent>
       <Shipping_Agent_code>$mlo_code</Shipping_Agent_code>
@@ -401,6 +405,21 @@ class ImportBLXMLGeneration {
 }
 
   dynamic generateMultiBL(String company, String mlo_code, String mlo_name) async {
+
+    List totalBls = blNo.where((v) => v.isNotEmpty).toList();
+
+    contPrefixes.removeWhere(
+          (e) => e == null || e is! List || e.isEmpty || e.every((x) => x.toString().trim().isEmpty),
+    );
+
+    int totalContainers = 0;
+
+    for(int i = 0; i < contPrefixes.length; i++) {
+      totalContainers += contPrefixes[i].length;
+    }
+
+    // contPrefixes.remove([]);
+    print("uuu${totalContainers} '${contPrefixes}'");
     var structure =
         """
 <?xml version="1.0" encoding="WINDOWS-1252"?>
@@ -414,16 +433,16 @@ class ImportBLXMLGeneration {
       <Date_of_arrival>${arrivalDates[0].value}</Date_of_arrival>
     </General_segment_id>
     <Totals_segment>
-      <Total_number_of_bols>${blNo.length.toString()}</Total_number_of_bols>
+      <Total_number_of_bols>${totalBls.length}</Total_number_of_bols>
       <Total_number_of_packages>${getTotalQty()}</Total_number_of_packages>
-      <Total_number_of_containers>${contPrefixes.length.toString()}</Total_number_of_containers>
+      <Total_number_of_containers>${totalContainers}</Total_number_of_containers>
       <Total_gross_mass>${getGrossMassAsPerWeightKGM()}</Total_gross_mass>
     </Totals_segment>
     <Transport_information>
       <Carrier>
         <Carrier_code>301093439</Carrier_code>
         <Carrier_name>$company</Carrier_name>
-        <Carrier_address>M A M TOWER, (13TH FLOOR), 226, STRAND ROAD</Carrier_address>
+        <Carrier_address>PORTLAND M A M TOWER(13TH FLOOR),STRAND ROAD,BANGLABAZAR,CHATTOGRAM</Carrier_address>
       </Carrier>
       <Mode_of_transport_code>1</Mode_of_transport_code>
       <Identity_of_transporter>${feederVesselNames[0].value}</Identity_of_transporter>
@@ -441,12 +460,12 @@ class ImportBLXMLGeneration {
     log(structure);
     try {
       // 1. Generate the XML content by calling the helper
-      String xmlContent = generateXML();
+      String xmlContent = structure;
 
       // 2. Use file_picker to open a "Save As..." dialog
       String? outputFile = await FilePicker.platform.saveFile(
         dialogTitle: 'Save Your XML File',
-        fileName: 'import_bl_${DateTime.now().millisecondsSinceEpoch}.xml', // Suggest a unique filename
+        fileName: 'MAN301093439_${DateTime.now().day < 10 ? "0${DateTime.now().day}" : DateTime.now().day}${DateTime.now().month}${DateTime.now().year}${DateTime.now().hour}${DateTime.now().minute}${DateTime.now().second}.xml', // Suggest a unique filename
         type: FileType.custom,
         allowedExtensions: ['xml'],
       );
@@ -489,7 +508,7 @@ class ImportBLXMLGeneration {
     <Carrier>
     <Carrier_code>301093439</Carrier_code>
     <Carrier_name>NOBLE SHIPPING LINE</Carrier_name>
-    <Carrier_address>M A M TOWER, (13TH FLOOR), 226, STRAND ROAD</Carrier_address>
+    <Carrier_address>PORTLAND M A M TOWER(13TH FLOOR),STRAND ROAD,BANGLABAZAR,CHATTOGRAM</Carrier_address>
     </Carrier>
     <Shipping_Agent>
     Shipping_Agent>
@@ -561,7 +580,7 @@ class ImportBLXMLGeneration {
     <Carrier>
     <Carrier_code>301093439</Carrier_code>
     <Carrier_name>NOBLE SHIPPING LINE</Carrier_name>
-    <Carrier_address>M A M TOWER, (13TH FLOOR), 226, STRAND ROAD</Carrier_address>
+    <Carrier_address>PORTLAND M A M TOWER(13TH FLOOR),STRAND ROAD,BANGLABAZAR,CHATTOGRAM</Carrier_address>
     </Carrier>
     <Shipping_Agent>
     Shipping_Agent>
@@ -636,7 +655,7 @@ class ImportBLXMLGeneration {
     <Carrier>
     <Carrier_code>301093439</Carrier_code>
     <Carrier_name>NOBLE SHIPPING LINE</Carrier_name>
-    <Carrier_address>M A M TOWER, (13TH FLOOR), 226, STRAND ROAD</Carrier_address>
+    <Carrier_address>PORTLAND M A M TOWER(13TH FLOOR),STRAND ROAD,BANGLABAZAR,CHATTOGRAM</Carrier_address>
     </Carrier>
     <Shipping_Agent>
     Shipping_Agent>
@@ -724,7 +743,7 @@ class ImportBLXMLGeneration {
     <Carrier>
     <Carrier_code>301093439</Carrier_code>
     <Carrier_name>NOBLE SHIPPING LINE</Carrier_name>
-    <Carrier_address>M A M TOWER, (13TH FLOOR), 226, STRAND ROAD</Carrier_address>
+    <Carrier_address>PORTLAND M A M TOWER(13TH FLOOR),STRAND ROAD,BANGLABAZAR,CHATTOGRAM</Carrier_address>
     </Carrier>
     <Shipping_Agent>
     Shipping_Agent>
@@ -812,7 +831,7 @@ class ImportBLXMLGeneration {
     <Carrier>
     <Carrier_code>301093439</Carrier_code>
     <Carrier_name>NOBLE SHIPPING LINE</Carrier_name>
-    <Carrier_address>M A M TOWER, (13TH FLOOR), 226, STRAND ROAD</Carrier_address>
+    <Carrier_address>PORTLAND M A M TOWER(13TH FLOOR),STRAND ROAD,BANGLABAZAR,CHATTOGRAM</Carrier_address>
     </Carrier>
     <Shipping_Agent>
     Shipping_Agent>
@@ -887,7 +906,7 @@ class ImportBLXMLGeneration {
     <Carrier>
     <Carrier_code>301093439</Carrier_code>
     <Carrier_name>NOBLE SHIPPING LINE</Carrier_name>
-    <Carrier_address>M A M TOWER, (13TH FLOOR), 226, STRAND ROAD</Carrier_address>
+    <Carrier_address>PORTLAND M A M TOWER(13TH FLOOR),STRAND ROAD,BANGLABAZAR,CHATTOGRAM</Carrier_address>
     </Carrier>
     <Shipping_Agent>
     Shipping_Agent>
