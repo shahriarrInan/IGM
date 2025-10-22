@@ -1,8 +1,14 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:igm/db%20handler/db_logics.dart';
 import 'package:refreshed/refreshed.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ImportBLController extends GetxController {
   RxBool shouldShowBottomSheet = false.obs;
+  RxBool shouldShowBLHistory = false.obs;
   RxString bottomSheetTag1 = "".obs;
   RxString bottomSheetTag2 = "".obs;
   RxString portOfShipment = "CTG".obs;
@@ -18,6 +24,63 @@ class ImportBLController extends GetxController {
     {"": ""},
   ].obs;
   final FocusNode _focusNode = FocusNode();
+
+  final dbHelper = DatabaseLogics();
+  RxList<Map<String, dynamic>> files = <Map<String, dynamic>>[].obs;
+
+  Future<void> fetchFiles() async {
+    files.clear();
+
+    final data = await dbHelper.getFiles();
+
+    if (data.isEmpty) {
+      if (kDebugMode) {
+        print("no BL found!");
+      }
+      return;
+    }
+
+    print(data);
+
+    for (var v in data) {
+      files.add(Map<String, dynamic>.from(v));
+    }
+  }
+
+  Future<void> showFileInFinder(String filePath) async {
+    final uri = Uri(
+      scheme: 'file',
+      path: filePath.substring(0,filePath.indexOf("MAN")),
+      queryParameters: {
+        'select': filePath.substring(filePath.indexOf("MAN")),
+      },
+    );
+
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      print("Could not open $filePath");
+    }
+  }
+
+  Future<void> openFileOnMac(String filePath) async {
+    final uri = Uri.file(filePath);
+
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      print("Couldn't open file: $filePath");
+    }
+  }
+
+  void openUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      throw 'Could not launch $url';
+    }
+  }
 
   assignEmpties(String heading, List<RxString> tecs) {
     print("object");

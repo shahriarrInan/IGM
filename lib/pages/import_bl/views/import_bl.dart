@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:igm/pages/import_bl/controllers/import_bl_controller.dart';
@@ -128,8 +130,8 @@ class ImportBL extends GetView<ImportBLController> {
 
     late ImportBLXMLGeneration importBLXMLGeneration;
 
-    generateXML(String company, String mlo_code, String mlo_name) {
-      importBLXMLGeneration.generateMultiBL(company, mlo_code, mlo_name);
+    generateXML(String company, String mloCode, String mloName) {
+      importBLXMLGeneration.generateMultiBL(company, mloCode, mloName);
       // importBLXMLGeneration.generateXML();
 
       // if (controller.blLineNoTECs.length == 1) {
@@ -164,14 +166,21 @@ class ImportBL extends GetView<ImportBLController> {
               // The "Yes" button
               TextButton(
                 child: const Text('Continue'),
-                onPressed: () async{
-                  SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-                  String? company = sharedPreferences.getString("selected company");
-                  String? mlo_code = sharedPreferences.getString("selected MLO code");
-                  String? mlo_name = sharedPreferences.getString("selected MLO name");
+                onPressed: () async {
+                  SharedPreferences sharedPreferences =
+                      await SharedPreferences.getInstance();
+                  String? company = sharedPreferences.getString(
+                    "selected company",
+                  );
+                  String? mloCode = sharedPreferences.getString(
+                    "selected MLO code",
+                  );
+                  String? mloName = sharedPreferences.getString(
+                    "selected MLO name",
+                  );
                   Navigator.of(context).pop();
                   debugPrint("'Yes' was tapped.");
-                  generateXML(company!, mlo_code!, mlo_name!);
+                  generateXML(company!, mloCode!, mloName!);
                 },
               ),
             ],
@@ -721,21 +730,31 @@ class ImportBL extends GetView<ImportBLController> {
                                 fontSize: 31,
                               ),
                             ),
-                            const SizedBox(width: 31,),
-                            MaterialButton(onPressed: (controller.selectedBLIndex.value > 0) ? (){
-                              controller
-                                  .removeLastBlRow();
-                              if(controller.blNoTECs.value.length == controller.selectedBLIndex.value) {
-                                controller
-                                    .selectedBLIndex
-                                    .value--;
-                              }
-                            } : () {},
-                            color: Colors.white,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadiusGeometry.circular(1000)),
-                              child: Text(" Clear Last ",
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),),
-                            )
+                            const SizedBox(width: 31),
+                            MaterialButton(
+                              onPressed: (controller.selectedBLIndex.value > 0)
+                                  ? () {
+                                      controller.removeLastBlRow();
+                                      if (controller.blNoTECs.value.length ==
+                                          controller.selectedBLIndex.value) {
+                                        controller.selectedBLIndex.value--;
+                                      }
+                                    }
+                                  : () {},
+                              color: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadiusGeometry.circular(
+                                  1000,
+                                ),
+                              ),
+                              child: Text(
+                                " Clear Last ",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                         LiquidGlass(
@@ -4107,12 +4126,19 @@ class ImportBL extends GetView<ImportBLController> {
                                           // });
                                           return;
                                         } else {
-
-                                          SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-                                          String? company = sharedPreferences.getString("company name");
-                                          String? mlo_code = sharedPreferences.getString("selected MLO code");
-                                          String? mlo_name = sharedPreferences.getString("selected MLO name");
-                                          generateXML(company!, mlo_code!, mlo_name!);
+                                          SharedPreferences sharedPreferences =
+                                              await SharedPreferences.getInstance();
+                                          String? company = sharedPreferences
+                                              .getString("company name");
+                                          String? mloCode = sharedPreferences
+                                              .getString("selected MLO code");
+                                          String? mloName = sharedPreferences
+                                              .getString("selected MLO name");
+                                          generateXML(
+                                            company!,
+                                            mloCode!,
+                                            mloName!,
+                                          );
                                         }
                                       },
                                       child: Container(
@@ -4751,36 +4777,76 @@ class ImportBL extends GetView<ImportBLController> {
                       width: sizes.appBarHeight * 3,
                       child: Image.asset("assets/images/mmgsll_w.png"),
                     ),
-                    LiquidGlass(
-                      clipBehavior: Clip.antiAlias,
-                      shape: const LiquidRoundedSuperellipse(
-                        borderRadius: Radius.circular(100),
-                      ),
-                      settings: LiquidGlassSettings(
-                        thickness: 30,
-                        glassColor: const Color(0x19FFFFFF),
-                        lightIntensity: 3,
-                        blend: 40,
-                        ambientStrength: .35,
-                        lightAngle: math.pi / 7,
-                        chromaticAberration: 0,
-                        refractiveIndex: 1.1,
-                      ),
-                      child: GestureDetector(
-                        onTap: () => Get.offAndToNamed(Routes.COMPANY_PAGE),
-                        child: SizedBox(
-                          height: sizes.appBarHeight * 1.35,
-                          child: Center(
-                            child: Text(
-                              "     Change Company     ",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      spacing: 11,
+                      children: [
+                        LiquidGlass(
+                          clipBehavior: Clip.antiAlias,
+                          shape: const LiquidRoundedSuperellipse(
+                            borderRadius: Radius.circular(100),
+                          ),
+                          settings: LiquidGlassSettings(
+                            thickness: 30,
+                            glassColor: const Color(0x19FFFFFF),
+                            lightIntensity: 3,
+                            blend: 40,
+                            ambientStrength: .35,
+                            lightAngle: math.pi / 7,
+                            chromaticAberration: 0,
+                            refractiveIndex: 1.1,
+                          ),
+                          child: GestureDetector(
+                            onTap: () {
+                              controller.fetchFiles();
+                              controller.shouldShowBLHistory.value = true;
+                            },
+                            child: SizedBox(
+                              height: sizes.appBarHeight * 1.35,
+                              child: Center(
+                                child: Text(
+                                  "     History     ",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
+                        LiquidGlass(
+                          clipBehavior: Clip.antiAlias,
+                          shape: const LiquidRoundedSuperellipse(
+                            borderRadius: Radius.circular(100),
+                          ),
+                          settings: LiquidGlassSettings(
+                            thickness: 30,
+                            glassColor: const Color(0x19FFFFFF),
+                            lightIntensity: 3,
+                            blend: 40,
+                            ambientStrength: .35,
+                            lightAngle: math.pi / 7,
+                            chromaticAberration: 0,
+                            refractiveIndex: 1.1,
+                          ),
+                          child: GestureDetector(
+                            onTap: () => Get.offAndToNamed(Routes.COMPANY_PAGE),
+                            child: SizedBox(
+                              height: sizes.appBarHeight * 1.35,
+                              child: Center(
+                                child: Text(
+                                  "     Change Company     ",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -4961,6 +5027,70 @@ class ImportBL extends GetView<ImportBLController> {
                             ),
                           ),
                         ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Visibility(
+              visible: controller.shouldShowBLHistory.value,
+              child: Container(
+                width: sizes.width,
+                height: sizes.height,
+                color: Colors.transparent,
+                child: Center(
+                  child: Container(
+                    width: sizes.width * .55,
+                    height: sizes.height * .85,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(55),
+                      color: Colors.white,
+                    ),
+                    child: Stack(
+                      children: [
+                        Positioned(
+                          top: sizes.appBarHeight,
+                          right: sizes.appBarHeight,
+                          child: IconButton(
+                            onPressed: () =>
+                                controller.shouldShowBLHistory.value = false,
+                            icon: Icon(Icons.cancel),
+                          ),
+                        ),
+                        controller.files.isEmpty
+                            ? Center(child: Text('No files saved'))
+                            : Padding(
+                              padding: EdgeInsets.fromLTRB(sizes.appBarHeight, sizes.appBarHeight * 2, sizes.appBarHeight, 0),
+                              child: ListView.builder(
+                                  itemCount: controller.files.length,
+                                  itemBuilder: (context, index) {
+                                    final file = controller.files[index];
+                                    return ListTile(
+                                      title: Text(file['file_name'], style: TextStyle(
+                                        fontWeight: FontWeight.w900,
+                                        fontSize: 17
+                                      ),),
+                                      subtitle: Text(file['file_path'],
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 14
+                                      ),
+                                      ),
+                                      trailing: IconButton(onPressed: () {
+                                        if(Platform.isMacOS) {
+                                          controller.showFileInFinder(
+                                            file['file_path']);
+                                        }
+                                        else {
+                                          controller.openUrl(
+                                              file['file_path']);
+                                        }
+                                      }, icon: Icon(CupertinoIcons.folder_fill)),
+                                    );
+                                  },
+                                ),
+                            ),
                       ],
                     ),
                   ),

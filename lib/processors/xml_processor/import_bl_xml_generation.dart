@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:igm/db%20handler/db_logics.dart';
 import 'package:refreshed/refreshed.dart';
 
 class ImportBLXMLGeneration {
@@ -135,6 +136,13 @@ class ImportBLXMLGeneration {
   double totalGrossMass = 0.0;
 
   int total_qty = 0;
+
+  final dbHelper = DatabaseLogics();
+
+  Future<void> saveFile(String fileName, String filePath) async {
+    await dbHelper.insertFile(fileName, filePath);
+  }
+
 
   getTotalQty() {
     print("object: ${quantity[0]}");
@@ -319,7 +327,7 @@ class ImportBLXMLGeneration {
     return grossVolume.toString();
   }
 
-  dynamic prepareMultiBLSection(company, mlo_code, mlo_name) {
+  dynamic prepareMultiBLSection(company, mloCode, mloName) {
     print("wtf $dgStatus");
     List totalBls = blNo.where((v) => v.isNotEmpty).toList();
     print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n${totalBls.length}");
@@ -350,8 +358,8 @@ class ImportBLXMLGeneration {
       <Carrier_address>PORTLAND M A M TOWER(13TH FLOOR),STRAND ROAD,BANGLABAZAR,CHATTOGRAM</Carrier_address>
     </Carrier>
     <Shipping_Agent>
-      <Shipping_Agent_code>$mlo_code</Shipping_Agent_code>
-        <Shipping_Agent_name>$mlo_name</Shipping_Agent_name>
+      <Shipping_Agent_code>$mloCode</Shipping_Agent_code>
+        <Shipping_Agent_name>$mloName</Shipping_Agent_name>
     </Shipping_Agent>
     <Exporter>
       <Exporter_name>${exporter[i].value}</Exporter_name>
@@ -404,12 +412,12 @@ class ImportBLXMLGeneration {
     return totalMass;
 }
 
-  dynamic generateMultiBL(String company, String mlo_code, String mlo_name) async {
+  dynamic generateMultiBL(String company, String mloCode, String mloName) async {
 
     List totalBls = blNo.where((v) => v.isNotEmpty).toList();
 
     contPrefixes.removeWhere(
-          (e) => e == null || e is! List || e.isEmpty || e.every((x) => x.toString().trim().isEmpty),
+          (e) => e.isEmpty || e.every((x) => x.toString().trim().isEmpty),
     );
 
     int totalContainers = 0;
@@ -419,7 +427,7 @@ class ImportBLXMLGeneration {
     }
 
     // contPrefixes.remove([]);
-    print("uuu${totalContainers} '${contPrefixes}'");
+    print("uuu$totalContainers '$contPrefixes'");
     var structure =
         """
 <?xml version="1.0" encoding="WINDOWS-1252"?>
@@ -435,7 +443,7 @@ class ImportBLXMLGeneration {
     <Totals_segment>
       <Total_number_of_bols>${totalBls.length}</Total_number_of_bols>
       <Total_number_of_packages>${getTotalQty()}</Total_number_of_packages>
-      <Total_number_of_containers>${totalContainers}</Total_number_of_containers>
+      <Total_number_of_containers>$totalContainers</Total_number_of_containers>
       <Total_gross_mass>${getGrossMassAsPerWeightKGM()}</Total_gross_mass>
     </Totals_segment>
     <Transport_information>
@@ -453,7 +461,7 @@ class ImportBLXMLGeneration {
       <Place_of_destination_code>BDCGP</Place_of_destination_code>
     </Load_unload_place>
   </General_segment>
-  ${prepareMultiBLSection(company, mlo_code, mlo_name)}
+  ${prepareMultiBLSection(company, mloCode, mloName)}
 </Awmds>
 """;
 
@@ -461,11 +469,12 @@ class ImportBLXMLGeneration {
     try {
       // 1. Generate the XML content by calling the helper
       String xmlContent = structure;
+      String fileName = 'MAN301093439_${DateTime.now().day < 10 ? "0${DateTime.now().day}" : DateTime.now().day}${DateTime.now().month}${DateTime.now().year}${DateTime.now().hour}${DateTime.now().minute}${DateTime.now().second}.xml';
 
       // 2. Use file_picker to open a "Save As..." dialog
       String? outputFile = await FilePicker.platform.saveFile(
         dialogTitle: 'Save Your XML File',
-        fileName: 'MAN301093439_${DateTime.now().day < 10 ? "0${DateTime.now().day}" : DateTime.now().day}${DateTime.now().month}${DateTime.now().year}${DateTime.now().hour}${DateTime.now().minute}${DateTime.now().second}.xml', // Suggest a unique filename
+        fileName: fileName, // Suggest a unique filename
         type: FileType.custom,
         allowedExtensions: ['xml'],
       );
@@ -475,10 +484,11 @@ class ImportBLXMLGeneration {
         final file = File(outputFile);
 
         // 4. Write the XML string to the selected file path
-        await file.writeAsString(xmlContent);
+        File xmlFile = await file.writeAsString(xmlContent);
 
         // 5. (Optional) Show a success message
         debugPrint('XML saved successfully to ${file.path}');
+        saveFile(fileName, file.path);
       } else {
         debugPrint('User canceled the save dialog.');
       }

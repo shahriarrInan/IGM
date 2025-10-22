@@ -44,7 +44,7 @@ class MLOPage extends GetView<MLOListController> {
                     refractiveIndex: 1.2,
                   ),
                   child: Text(
-                    "Company List",
+                    "MLO List",
                     style: TextStyle(
                       fontWeight: FontWeight.w900,
                       fontSize: 55,

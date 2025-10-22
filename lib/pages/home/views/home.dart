@@ -38,7 +38,7 @@ class Home extends GetView<HomeController> {
               child: SizedBox(
                 height: sizes.appBarHeight * 2,
                 width: sizes.appBarHeight * 3,
-                child: Image.asset("assets/images/mmgsll_w.png"),
+                child: Image.asset("assets/images/mmgsll (trbg).png"),
               ),
             ),
             Row(
